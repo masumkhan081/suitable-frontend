@@ -25,7 +25,7 @@ export default function CustomButton({
   //
   const styleMap = {
     default: "text-blue-600 bg-blue-50 rounded-md p-2 font-bold",
-    authForm: `w-full text-black  border border-gray-300 rounded-md bg-gray-200 text-center px-2 py-2 font-semibold`,
+    authForm: `w-full text-white  border border-gray-300 rounded-md bg-purple-600 text-center px-2 py-2 font-semibold`,
   };
 
   return (

@@ -10,8 +10,8 @@ interface CustomLinkProps {
 }
 
 const styleMap = {
-  default: "text-blue-600 bg-blue-50 rounded-md p-2 font-bold",
-  authForm: "bg-slate-200 brdr text-white rounded-md text-center px-2 py-2 font-semibold  ",
+  default: "text-blue-600",
+  authForm: "bg-slate-200  text-white rounded-md text-center px-2 py-2 font-semibold  ",
 };
 
 export default function CustomLink({

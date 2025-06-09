@@ -2,8 +2,8 @@ import React from 'react'
 
 export default function EnhanceText({txt,styleKey="title"}) {
     const styleMap = {
-        appTitle: "text-red-700 font-medium text-3xl font-sans",
-        formTitle:"text-gray-700 font-bold text-lg",
+        appTitle: "text-gray-800 text-2xl font-medium",
+        formTitle:"text-black font-bold text-lg",
         subText:"text-gray-500 text-xs text-center w-full",
     }
   return (

@@ -4,12 +4,12 @@ import React, { useState } from "react";
 import EnhanceText from "../custom/EnhanceText";
 import CustomInput from "../custom/CustomInput";
 import CustomRadioGroup from "../custom/CustomRadioGroup";
-import { DatePicker } from "rsuite";
-import "rsuite/dist/rsuite.min.css";
+
+
 import CustomButton from "../custom/CustomButton";
 import { getSchemaValidation } from "@/0.lib/getSchemaValidation";
-import { signupSchema } from "@/schema/auth.schema";
-import { IErrorSignup } from "@/types/auth.type";
+import { signupSchema } from "@/0.schema/auth.schema";
+import { IErrorSignup } from "@/0.types/auth.type";
 import CustomDatePicker from "../custom/CustomDatePicker";
 //
 export default function ResetPassword() {

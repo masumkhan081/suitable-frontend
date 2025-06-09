@@ -1,9 +1,7 @@
 export interface IErrorSignup {
-  name: string;
+  username: string;
   email: string;
   password: string;
-  gender: string;
-  dob: string | null;
 }
 export interface IErrorLogin {
   email: string;

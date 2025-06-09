@@ -59,7 +59,7 @@ export default function CustomInput({
           type={inputType}
           className={`${styMap[styleKey]?.input} w-full ${isPassword ? "pr-10" : ""
             }`}
-          placeholder={JSON.stringify(isPassword)}
+          placeholder={ph}
           value={value}
           onChange={onChange}
           readOnly={readOnly}

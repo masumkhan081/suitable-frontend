@@ -1,136 +1,95 @@
-// @ts-nocheck
-"use client";
-import React, { useState } from "react";
-import EnhanceText from "../custom/EnhanceText";
-import CustomInput from "../custom/CustomInput";
-import CustomRadioGroup from "../custom/CustomRadioGroup";
-import { DatePicker } from "rsuite";
-import "rsuite/dist/rsuite.min.css";
-import CustomButton from "../custom/CustomButton";
-import { getSchemaValidation } from "@/0.lib/getSchemaValidation";
-import { signupSchema } from "@/schema/auth.schema";
-import { IErrorSignup } from "@/types/auth.type";
-import CustomDatePicker from "../custom/CustomDatePicker";
+'use client'
+import React, { useState } from 'react'
+import CustomInput from '../custom/CustomInput'
+import CustomButton from '../custom/CustomButton'
+import { getSchemaValidation } from '@/0.lib/getSchemaValidation'
+import { loginSchema } from '@/0.schema/auth.schema'
+import { IErrorLogin } from '@/0.types/auth.type'
+import CustomCheckbox from '../custom/CustomCheckbox'
+import CustomLink from '../custom/CustomLink'
 //
 export default function SignIn() {
   // states
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [gender, setGender] = useState("Male");
-  const [dob, setDob] = useState<Date | null>(null);
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   //
-  const initErrors: IErrorSignup = {
-    name: "",
-    email: "",
-    password: "",
-    gender: "",
-    dob: "",
-  };
-  const [errors, setErrors] = useState(initErrors);
+  const initErrors: IErrorLogin = {
+    email: '',
+    password: ''
+  }
+  const [errors, setErrors] = useState(initErrors)
   //
 
   const handleSubmit = () => {
     const data = {
-      name,
       email,
-      password,
-      gender,
-      dob,
-    };
+      password
+    }
 
     // send schema key, type key, initerror key
 
     const result = getSchemaValidation({
-      schema: signupSchema,
-      data,
-    });
+      schema: loginSchema,
+      data
+    })
 
     if (result.success) {
-      alert("ok................");
+      alert('ok................')
     } else {
-      alert(JSON.stringify(result.error));
-      setErrors((prevErrors) => ({ ...prevErrors, ...result.error }));
+      alert(JSON.stringify(result.error))
+      setErrors((prevErrors) => ({ ...prevErrors, ...result.error }))
     }
-  };
+  }
 
   return (
-    <div className="h-full md:w-full lg:w-2/3 mx-auto flex flex-col gap-4  py-4 px-6">
+    <form className=" w-full flex flex-col gap-4">
+      <CustomInput
+        styleKey="authForm"
+        label="Email"
+        id="email"
+        name="email"
+        type="email"
+        required
+        ph="Email"
+        value={email}
+        error={errors.email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <CustomInput
+        styleKey="authForm"
+        label="Password"
+        id="password"
+        name="password"
+        type="password"
+        required
+        ph="Password"
+        value={password}
+        error={errors.password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
-      <div className=" flex-grow flex flex-col gap-5 justify-center items-center">
-        <div className="w-full flex flex-col gap-1 items-center px-4 ">
-          <EnhanceText txt="Suitable" styleKey="appTitle" />
-          <EnhanceText
-            txt="Start your soulmate search with world's most trusted matchmaking app: suitable .........."
-            styleKey="subText"
-          />
-        </div>
+      <div className="flex justify-between items-center">
+        <CustomCheckbox
+          styleKey="authForm"
+          // label="I agree to the terms and data policy"
+          id="terms"
+          name="terms"
+          required
+          value=""
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
+        >
+          <span>Remember me</span>
+        </CustomCheckbox>
 
-        <form className="w-full flex flex-col gap-6">
-          {/* name, email, password,gender (radiobutton), dob */}
-          <EnhanceText txt="Create New Account" styleKey="formTitle" />
-          <div className="flex flex-col gap-4">
-            <CustomInput
-              styleKey="authForm"
-              label="Name"
-              id="name"
-              name="name"
-              type="text"
-              required
-              ph="Full Name"
-              value={name}
-              error={errors.name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <CustomInput
-              styleKey="authForm"
-              label="Email"
-              id="email"
-              name="email"
-              type="email"
-              required
-              ph="Email"
-              value={email}
-              error={errors.email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <CustomInput
-              styleKey="authForm"
-              label="Password"
-              id="password"
-              name="password"
-              type="password"
-              required
-              ph="Password"
-              value={password}
-              error={errors.password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
-            <CustomRadioGroup
-              label="Gender"
-              styleKey="authForm"
-              options={["Male", "Female"]}
-              name="gender"
-              value={gender}
-              onChange={setGender}
-            />
-
-            <CustomDatePicker label="Date of Birth" value={dob} onChange={(e) => setDob(e)} />
-
-          </div>
-
-          <CustomButton
-            styleKey="authForm"
-            txt="Sign Up"
-            type="submit"
-            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.preventDefault();
-              handleSubmit();
-            }}
-          />
-        </form>
+        <CustomLink href="/auth/reset-request" txt="Forgot Password" />
       </div>
-    </div>
-  );
+
+      <CustomButton styleKey="authForm" txt="Sign Up" onClick={handleSubmit} />
+
+      <p className="flex gap-2 items-center justify-center">
+        Don't have an account?
+        <CustomLink href="/auth/sign-up" txt="Sign up" />
+      </p>
+    </form>
+  )
 }
