@@ -13,8 +13,10 @@ export const signupSchema = z.object({
     .string()
     .email("Invalid email format.")
     .max(256, { message: "Maximum length for email is 256 characters." }),
-  gender: z.enum(["male", "female"]),
-  dob: z.date(),
+  gender: z.enum(["Male", "Female"]),
+  dob: z.coerce.date() // Ensures it parses string inputs to Date
+    .min(new Date('1900-01-01'), { message: 'Date of birth must be after 1900-01-01' })
+    .max(new Date(), { message: 'Date of birth must be in the past' })
 });
 
 export const loginSchema = z.object({

@@ -2,8 +2,8 @@ import CustomLink from "@/components/custom/CustomLink";
 
 export default function Home() {
   return (
-    <div className="w-full h-full brdr bg-amber-100 dark:bg-amber-950 min-h-screen flex flex-col items-center justify-center gap-4">
-      <h1 className="text-4xl font-bold">Auth Pages:</h1>
+    <div className="w-full h-full p-8 bg-amber-100 dark:bg-amber-950 min-h-screen flex flex-col items-start justify-start gap-4">
+      <h1 className="text-xl font-semibold">Auth Pages:</h1>
       <div className="flex gap-3">
         <CustomLink href="/auth/sign-in" txt="Sign In" />
         <CustomLink href="/auth/sign-up" txt="Sign Up" />
@@ -12,7 +12,15 @@ export default function Home() {
         <CustomLink href="/auth/reset-request" txt="Reset request" />
         <CustomLink href="/auth/profile" txt="Profile" />
       </div>
-      <h1 className="text-4xl font-bold">Admin Pages:</h1>
+      <h1 className="text-xl font-semibold">Onboarding</h1>
+      <div className="flex gap-3">
+        <CustomLink href="/onboarding/lifestyle" txt="Lifestyle" />
+        <CustomLink href="/onboarding/subscription-plans" txt="Subscription Plans" />
+        <CustomLink href="/onboarding/subscription-plans" txt="Subscription Plans" />
+        <CustomLink href="/auth/reset-request" txt="Reset request" />
+        <CustomLink href="/auth/profile" txt="Profile" />
+      </div>
+      <h1 className="text-xl font-semibold">Admin Pages:</h1>
       <div className="flex gap-3">
         <CustomLink href="/admin/dashboard" txt="Dashboard" />
         <CustomLink href="/admin/users" txt="Users" />
@@ -20,11 +28,21 @@ export default function Home() {
         <CustomLink href="/admin/permissions" txt="Permissions" />
         <CustomLink href="/admin/settings" txt="Settings" />
       </div>
-      <h1 className="text-4xl font-bold">System Pages:</h1>
+      <h1 className="text-xl font-semibold">System Pages:</h1>
       <div className="flex gap-3">
         <CustomLink href="/terms-and-condition" txt="Terms and Condition" />
         <CustomLink href="/privacy-policy" txt="Privacy Policy" />
         <CustomLink href="/faq" txt="Faq" />
+      </div>
+      <h1 className="text-xl font-semibold">Pricing Pages:</h1>
+      <div className="flex gap-3">
+        <CustomLink href="/pricing-packages" txt="Packages" />
+      </div>
+      <h1 className="text-xl font-semibold">Payment Pages:</h1>
+      <div className="flex gap-3">
+        <CustomLink href="/payment/checkout" txt="Checkout" />
+        <CustomLink href="/payment/success" txt="Success" />
+        <CustomLink href="/payment/failure" txt="Failure" />
       </div>
     </div>
   );

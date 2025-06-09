@@ -1,0 +1,15 @@
+[2025-05-15T10:25:23.975Z] 
+
+
+ id---------------: GOlCc6GvHHZYfUfTQUobVgVP7Z8KvVFb role: TENANT
+
+
+{"id":"GOlCc6GvHHZYfUfTQUobVgVP7Z8KvVFb","name":"Masum Khan","email":"study.contents.of.masumkhan@gmail.com","phone":null,"role":"TENANT","emailVerified":true,"image":"https://media.licdn.com/dms/image/v2/D5603AQE_GxE9TK0mvg/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1710577133761?e=1752710400&v=beta&t=nKzsIQWE73C700vJ3UjD8BgGJGsgjbFyGmEBvv_cN5k","createdAt":"2025-05-15T10:19:45.186Z","updatedAt":"2025-05-15T10:19:45.186Z"}
+[2025-05-15T10:28:01.043Z] 
+
+
+ id---------------: scVffjkNqm0ZdcyThhjlcUFSx7lAldUU role: TENANT
+
+
+{"id":"scVffjkNqm0ZdcyThhjlcUFSx7lAldUU","name":"Masum Khan","email":"study.contents.of.masumkhan@gmail.com","phone":null,"role":"TENANT","emailVerified":true,"image":"https://media.licdn.com/dms/image/v2/D5603AQE_GxE9TK0mvg/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1710577133761?e=1752710400&v=beta&t=nKzsIQWE73C700vJ3UjD8BgGJGsgjbFyGmEBvv_cN5k","createdAt":"2025-05-15T10:26:12.786Z","updatedAt":"2025-05-15T10:26:12.786Z"}
+[2025-05-19T06:17:59.286Z] [assert-role] Updated user masumkhan.technext@gmail.com with role TENANT
