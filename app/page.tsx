@@ -1,4 +1,4 @@
-import CustomLink from "@/components/custom/CustomLink";
+import CustomLink from '@/components/custom/CustomLink'
 
 export default function Home() {
   return (
@@ -7,18 +7,22 @@ export default function Home() {
       <div className="flex gap-3">
         <CustomLink href="/auth/sign-in" txt="Sign In" />
         <CustomLink href="/auth/sign-up" txt="Sign Up" />
-        <CustomLink href="/auth/reset-password" txt="Reset Password" />
+        {/* <CustomLink href="/auth/reset-password" txt="Reset Password" />
         <CustomLink href="/auth/reset-successfull" txt="Reset Successfull" />
         <CustomLink href="/auth/reset-request" txt="Reset request" />
-        <CustomLink href="/auth/profile" txt="Profile" />
+        <CustomLink href="/auth/profile" txt="Profile" /> */}
       </div>
       <h1 className="text-xl font-semibold">Onboarding</h1>
       <div className="flex gap-3">
-        <CustomLink href="/onboarding/lifestyle" txt="Lifestyle" />
         <CustomLink href="/onboarding/subscription-plans" txt="Subscription Plans" />
-        <CustomLink href="/onboarding/subscription-plans" txt="Subscription Plans" />
-        <CustomLink href="/auth/reset-request" txt="Reset request" />
-        <CustomLink href="/auth/profile" txt="Profile" />
+        <CustomLink
+          href="/onboarding/subscription-plans/standard/successfull"
+          txt="Subscription Successfull"
+        />
+      </div>
+      <h1 className="text-xl font-semibold">Profile</h1>
+      <div className="flex gap-3">
+        <CustomLink href="/profile" txt="Profile" />
       </div>
       <h1 className="text-xl font-semibold">Admin Pages:</h1>
       <div className="flex gap-3">
@@ -45,5 +49,5 @@ export default function Home() {
         <CustomLink href="/payment/failure" txt="Failure" />
       </div>
     </div>
-  );
+  )
 }
