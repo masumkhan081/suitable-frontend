@@ -1,0 +1,12 @@
+import EnhanceText from '@/components/custom/EnhanceText'
+import React from 'react'
+
+type Props = {}
+
+export default function PersonalInfo1({}: Props) {
+  return (
+    <div>
+      <EnhanceText txt="Personal Info" styleKey="appTitle" />
+    </div>
+  )
+}

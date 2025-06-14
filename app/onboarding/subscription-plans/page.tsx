@@ -88,7 +88,7 @@ export default function PricingPackages() {
         <EnhanceText txt="Get everything you want" styleKey="subText" />
       </div>
 
-      <div className="w-full md:max-w-[1200px] max-w-full mx-auto grid grid-cols-3 gap-6 items-center justify-center">
+      <div className="w-full md:max-w-[1200px] max-w-full mx-auto grid grid-cols-3 gap-[10px] items-center justify-center">
         {packages.map((plan, index) => (
           <div
             className={cn(
