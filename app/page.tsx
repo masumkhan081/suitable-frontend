@@ -13,12 +13,28 @@ export default function Home() {
         <CustomLink href="/auth/profile" txt="Profile" /> */}
       </div>
       <h1 className="text-xl font-semibold">Onboarding</h1>
-      <div className="flex gap-3">
+      <div className="flex gap-6 flex-wrap">
         <CustomLink href="/onboarding/subscription-plans" txt="Subscription Plans" />
         <CustomLink
           href="/onboarding/subscription-plans/standard/successfull"
           txt="Subscription Successfull"
         />
+        {/* personal-info */}
+        <CustomLink href="/onboarding/personal-info/step-1" txt="Personal-Info Step-1" />
+        <CustomLink href="/onboarding/personal-info/step-2" txt="Personal-Info Step-2" />
+        {/* education-and-career */}
+        <CustomLink
+          href="/onboarding/education-and-career/step-1"
+          txt="Education-and-Career Step-1"
+        />
+        <CustomLink
+          href="/onboarding/education-and-career/step-2"
+          txt="Education-and-Career Step-2"
+        />
+        {/* religious-view */}
+        <CustomLink href="/onboarding/religious-view" txt="Religious-View" />
+        {/* add-photo */}
+        <CustomLink href="/onboarding/add-photo" txt="Add-Photo" />
       </div>
       <h1 className="text-xl font-semibold">Profile</h1>
       <div className="flex gap-3">

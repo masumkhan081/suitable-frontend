@@ -1,41 +1,35 @@
-import { ArrowDown2 } from "iconsax-react";
-import  { useState,  useEffect, useRef } from "react";
+import { ArrowDown2, TickCircle } from "iconsax-react";
+import { useState, useEffect, useRef } from "react";
+
+type OptionType = string | { value: string; label: string };
 
 interface CustomSelectProps {
-  options: string[]; // Array of strings for the options
+  options: OptionType[];
   label?: string;
-  value: string; // Single string representing the selected value
-  onChange: (selectedValue: string) => void; // Function to handle change
-  placeholder?: string; // Placeholder text when no option is selected
-  keyStyParent?: keyof typeof styMap; // Key to access styles from styMap
+  value: string;
+  onChange: (selectedValue: string) => void;
+  placeholder?: string;
+  keyStyParent?: keyof typeof styMap;
 }
 
 const styMap = {
   default: {
     parent: "flex flex-col gap-1 w-full relative",
-    inlineLabel:
-      "bg-slate-300 text-black text-sm font-semibold px-0.5 rounded-md py-0.125 h-full",
-    label: "w-full text-[#333333]",
-    value:
-      "flex ps-1 pe-2 justify-between items-center w-full outline-none bg-[#FFFFFF] p-[10px] rounded-md border border-gray-300",
-    dropdown:
-      "absolute w-full bg-white z-10 top-full border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto",
-    option:
-      "py-2 px-3 text-sm cursor-pointer hover:bg-blue-600 hover:text-white",
-    optionSelected: "bg-blue-600 text-white",
+    inlineLabel: "bg-slate-300 text-black text-sm font-semibold px-0.5 rounded-md py-0.125 h-full",
+    label: "w-full text-gray-700",
+    value: "flex ps-3 pe-2 justify-between items-center w-full outline-none bg-white p-2.5 rounded-md border border-gray-300 hover:border-gray-400 transition-colors",
+    dropdown: "absolute w-full bg-white z-10 top-full border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto p-1 space-y-1",
+    option: "py-2 px-3 mx-2 text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-2 rounded-md border border-transparent hover:border-gray-200",
+    optionSelected: "bg-gray-100 font-medium text-gray-900 border-gray-200",
   },
   piCreation: {
     parent: "flex flex-col gap-1 w-full relative",
-    inlineLabel:
-      "bg-blue-900 text-white text-sm font-semibold px-0.5 rounded-md py-0.125 h-full",
-    label: "w-full text-[#FFFFFF]",
-    value:
-      "flex ps-1 pe-2 justify-between items-center w-full outline-none bg-[#FFFFFFB2] p-[10px] rounded-md border border-gray-300",
-    dropdown:
-      "absolute w-full z-10 top-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto",
-    option:
-      "py-2 px-3 text-sm cursor-pointer hover:bg-blue-600 hover:text-white",
-    optionSelected: "bg-blue-600 text-white",
+    inlineLabel: "bg-blue-900 text-white text-sm font-semibold px-0.5 rounded-md py-0.125 h-full",
+    label: "w-full text-white",
+    value: "flex ps-3 pe-2 justify-between items-center w-full outline-none bg-white/70 p-2.5 rounded-md border border-gray-300 hover:border-gray-400 transition-colors",
+    dropdown: "absolute w-full bg-white z-10 top-full border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto py-1 px-2 space-y-1",
+    option: "py-2 px-3 mx-2 text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-2 rounded-md border border-transparent hover:border-gray-200 transition-colors",
+    optionSelected: "bg-gray-100 font-medium text-gray-900 border-gray-200",
   },
 };
 
@@ -45,64 +39,78 @@ export default function CustomSelect({
   value,
   onChange,
   placeholder = "Select an option",
-  keyStyParent = "default", // Default to "default" if not provided
+  keyStyParent = "default",
 }: CustomSelectProps) {
-  //
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null); 
-  //
-  const handleSelectToggle = () => {
-    setIsOpen((prev) => !prev);
-  };
-
-  const handleOptionSelect = (selectedValue: string) => {
-    onChange(selectedValue);
-    setIsOpen(false);
-  };
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
+  const handleSelectToggle = () => {
+    setIsOpen((prev) => !prev);
+  };
+
+  const handleOptionSelect = (option: string) => {
+    onChange(option);
+    setIsOpen(false);
+  };
 
   return (
-    <div className={styMap[keyStyParent].parent}>
+    <div className={styMap[keyStyParent].parent} ref={dropdownRef}>
       {label && <label className={styMap[keyStyParent].label}>{label}</label>}
-
       <div
-        className={styMap[keyStyParent].value}
-        onClick={handleSelectToggle} // Open/close the dropdown on click
+        className={`${styMap[keyStyParent].value} cursor-pointer`}
+        onClick={() => setIsOpen(!isOpen)}
       >
-        <span>{value || placeholder}</span>
-        <ArrowDown2 size="18" className="text-slate-600 me-2 " />
+        <span className={!value ? 'text-gray-400' : ''}>
+          {value || placeholder}
+        </span>
+        <div className="flex items-center">
+          <span className="text-gray-400 mr-1">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 9L12 16L5 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+        </div>
       </div>
-
       {isOpen && (
-        <ul className={styMap[keyStyParent].dropdown}>
-          {options.map((option, index) => (
-            <li
-              key={index}
-              className={`${styMap[keyStyParent].option} ${
-                value === option ? styMap[keyStyParent].optionSelected : ""
-              }`}
-              onClick={() => handleOptionSelect(option)}
-            >
-              {option}
-            </li>
-          ))}
-        </ul>
+        <div className={styMap[keyStyParent].dropdown}>
+          {options.map((option) => {
+            const optionValue = typeof option === 'string' ? option : option.value;
+            const optionLabel = typeof option === 'string' ? option : option.label;
+            const isSelected = value === optionValue;
+            
+            return (
+              <div
+                key={optionValue}
+                className={`${styMap[keyStyParent].option} ${
+                  isSelected ? styMap[keyStyParent].optionSelected : ""
+                }`}
+                onClick={() => handleOptionSelect(optionValue)}
+              >
+                <span className="flex-grow">
+                  {optionLabel}
+                </span>
+                {isSelected && (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+                    <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
