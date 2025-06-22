@@ -1,7 +1,7 @@
 'use client'
 import { useForm, Controller } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 import CustomButton from '../custom/CustomButton'
 import CustomSelect2 from '../custom/CustomSelect2'
 import { ArrowRightIcon } from 'lucide-react'
@@ -39,24 +39,16 @@ const getDisplayValue = (value: string, options: {value: string, label: string}[
   return option ? option.label : '';
 };
 
-type FormData = {
-  dob: string
-  gender: string
-  height: string
-  maritalStatus: string
-  numberOfChildren: string
-  numberOfSiblings: string
-  ethnicity: string
-}
+type FormData = z.infer<typeof schema>
 
-const schema = yup.object().shape({
-  dob: yup.string().required('Date of birth is required'),
-  gender: yup.string().required('Please select your gender'),
-  height: yup.string().required('Please select your height'),
-  maritalStatus: yup.string().required('Please select your marital status'),
-  numberOfChildren: yup.string().required('Please specify number of children'),
-  numberOfSiblings: yup.string().required('Please specify number of siblings'),
-  ethnicity: yup.string().required('Please select your ethnicity')
+const schema = z.object({
+  dob: z.string().min(1, 'Date of birth is required'),
+  gender: z.string().min(1, 'Please select your gender'),
+  height: z.string().min(1, 'Please select your height'),
+  maritalStatus: z.string().min(1, 'Please select your marital status'),
+  numberOfChildren: z.string().min(1, 'Please specify number of children'),
+  numberOfSiblings: z.string().min(1, 'Please specify number of siblings'),
+  ethnicity: z.string().min(1, 'Please select your ethnicity')
 })
 
 export default function PersonalInfo1() {
@@ -75,7 +67,7 @@ export default function PersonalInfo1() {
     setValue,
     watch
   } = useForm<FormData>({
-    resolver: yupResolver(schema),
+    resolver: zodResolver(schema),
     defaultValues: {
       dob: '',
       gender: '',

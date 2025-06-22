@@ -1,7 +1,7 @@
 import { ArrowDown2, TickCircle } from "iconsax-react";
 import { useState, useEffect, useRef } from "react";
 
-type OptionType = string | { value: string; label: string };
+export type OptionType = string | { value: string; label: string };
 
 interface CustomSelectProps {
   options: OptionType[];
@@ -10,6 +10,7 @@ interface CustomSelectProps {
   onChange: (selectedValue: string) => void;
   placeholder?: string;
   keyStyParent?: keyof typeof styMap;
+  error?: boolean;
 }
 
 const styMap = {
@@ -19,7 +20,7 @@ const styMap = {
     label: "w-full text-gray-700",
     value: "flex ps-3 pe-2 justify-between items-center w-full outline-none bg-white p-2.5 rounded-md border border-gray-300 hover:border-gray-400 transition-colors",
     dropdown: "absolute w-full bg-white z-10 top-full border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto p-1 space-y-1",
-    option: "py-2 px-3 mx-2 text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-2 rounded-md border border-transparent hover:border-gray-200",
+    option: "py-2 px-3 mx-2 text-sm cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-2 rounded-md border border-transparent hover:border-gray-200 transition-colors",
     optionSelected: "bg-gray-100 font-medium text-gray-900 border-gray-200",
   },
   piCreation: {
