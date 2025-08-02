@@ -1,6 +1,5 @@
 export const thead1 = [
-  'First Name',
-  'Last Name',
+  'Name',
   'Age',
   'Gender',
   'Email',

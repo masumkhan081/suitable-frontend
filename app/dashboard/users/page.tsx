@@ -1,13 +1,17 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserTabs } from '@/components/dashboard/UserTabs';
+import { UserPageHeader } from '@/components/dashboard/UserPageHeader';
 import UserTable from '@/components/dashboard/UserTable';
 import { useUsers } from '@/hooks/useUsers';
+import { User } from '@/types/index';
 
 export default function UsersPage() {
   const router = useRouter();
   const { users, updateUser, deleteUser } = useUsers();
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleEdit = (user: any) => {
     // Handle edit action
@@ -20,13 +24,31 @@ export default function UsersPage() {
     }
   };
 
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+  };
+
+  // Filter users based on search term
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) return users;
+    
+    const lowercaseSearch = searchTerm.toLowerCase();
+    return users.filter((user: User) => 
+      user['First Name']?.toLowerCase().includes(lowercaseSearch) ||
+      user['Last Name']?.toLowerCase().includes(lowercaseSearch) ||
+      user.Email?.toLowerCase().includes(lowercaseSearch) ||
+      user.Phone?.toLowerCase().includes(lowercaseSearch) ||
+      `${user['First Name']} ${user['Last Name']}`.toLowerCase().includes(lowercaseSearch)
+    );
+  }, [users, searchTerm]);
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <h2 className="text-lg font-semibold text-gray-900 mb-6">User Management</h2>
+      <UserPageHeader onSearch={handleSearch} />
       <UserTabs />
       <div className="mt-6">
         <UserTable 
-          users={users} 
+          users={filteredUsers} 
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

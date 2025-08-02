@@ -1,8 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
-import { User, UserStatus } from '@/types/index';
+import { User, UserStatus, UserStatusFilter } from '@/types/index';
 import { tbody1, tbody2 } from '@/components/dashboard/data';
-
-type UserStatusFilter = 'all' | 'active' | 'verified' | 'declined';
 
 export function useUsers() {
   const [users, setUsers] = useState<User[]>(() => 
@@ -48,6 +46,29 @@ export function useUsers() {
           !user.Status.incomeVerified || 
           !user.Status.identityVerified
         );
+      case 'pending':
+        return users.filter(user => 
+          (!user.Status.ageVerified || !user.Status.incomeVerified) && 
+          user.Status.identityVerified
+        );
+      case 'inactive':
+        return users.filter(user => 
+          user.Status.ageVerified && 
+          !user.Status.incomeVerified && 
+          !user.Status.identityVerified
+        );
+      case 'deactivated':
+        return users.filter(user => 
+          !user.Status.ageVerified && 
+          !user.Status.incomeVerified && 
+          user.Status.identityVerified
+        );
+      case 'deleted':
+        return users.filter(user => 
+          !user.Status.ageVerified && 
+          !user.Status.incomeVerified && 
+          !user.Status.identityVerified
+        );
       case 'all':
       default:
         return users;
@@ -66,8 +87,27 @@ export function useUsers() {
       user.Status.identityVerified
     ).length,
     pending: users.filter(user => 
+      (!user.Status.ageVerified || !user.Status.incomeVerified) && 
+      user.Status.identityVerified
+    ).length,
+    declined: users.filter(user => 
       !user.Status.ageVerified || 
       !user.Status.incomeVerified || 
+      !user.Status.identityVerified
+    ).length,
+    inactive: users.filter(user => 
+      user.Status.ageVerified && 
+      !user.Status.incomeVerified && 
+      !user.Status.identityVerified
+    ).length,
+    deactivated: users.filter(user => 
+      !user.Status.ageVerified && 
+      !user.Status.incomeVerified && 
+      user.Status.identityVerified
+    ).length,
+    deleted: users.filter(user => 
+      !user.Status.ageVerified && 
+      !user.Status.incomeVerified && 
       !user.Status.identityVerified
     ).length,
   }), [users]);

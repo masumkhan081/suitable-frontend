@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { UserTabs } from '@/components/dashboard/UserTabs';
+import { UserPageHeader } from '@/components/dashboard/UserPageHeader';
 import UserTable from '@/components/dashboard/UserTable';
 import { useUsers } from '@/hooks/useUsers';
 
@@ -23,7 +24,7 @@ export default function DeclinedUsersPage() {
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <h2 className="text-lg font-semibold text-gray-900 mb-6">Declined Users</h2>
+      <UserPageHeader />
       <UserTabs />
       <div className="mt-6">
         <UserTable 

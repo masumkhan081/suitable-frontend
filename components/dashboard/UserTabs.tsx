@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { FiUser, FiCheck, FiX, FiClock } from 'react-icons/fi';
+import { FiUser, FiCheck, FiX, FiClock, FiUserX, FiTrash2, FiPause } from 'react-icons/fi';
 
 type Tab = {
   id: string;
@@ -41,6 +41,24 @@ const tabs: Tab[] = [
     icon: <FiClock className="w-4 h-4 mr-2" />,
     path: '/dashboard/users/pending',
   },
+  {
+    id: 'inactive',
+    label: 'Inactive',
+    icon: <FiPause className="w-4 h-4 mr-2" />,
+    path: '/dashboard/users/inactive',
+  },
+  {
+    id: 'deactivated',
+    label: 'Deactivated',
+    icon: <FiUserX className="w-4 h-4 mr-2" />,
+    path: '/dashboard/users/deactivated',
+  },
+  {
+    id: 'deleted',
+    label: 'Deleted',
+    icon: <FiTrash2 className="w-4 h-4 mr-2" />,
+    path: '/dashboard/users/deleted',
+  },
 ];
 
 export function UserTabs() {
@@ -54,19 +72,19 @@ export function UserTabs() {
 
   return (
     <div className="mb-6 border-b border-gray-200">
-      <nav className="-mb-px flex space-x-8 overflow-x-auto">
+      <nav className="-mb-px flex space-x-1 sm:space-x-4 lg:space-x-8 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => handleTabClick(tab.path)}
-            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
+            className={`flex-shrink-0 whitespace-nowrap py-3 sm:py-4 px-1 sm:px-2 border-b-2 font-medium text-xs sm:text-sm flex flex-col sm:flex-row items-center transition-colors duration-200 ${
               activeTab === tab.id
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            {tab.icon}
-            {tab.label}
+            <span className="mb-1 sm:mb-0 sm:mr-2">{tab.icon}</span>
+            <span className="text-xs sm:text-sm">{tab.label}</span>
           </button>
         ))}
       </nav>

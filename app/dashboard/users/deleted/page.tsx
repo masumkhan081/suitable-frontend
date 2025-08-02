@@ -6,10 +6,10 @@ import { UserPageHeader } from '@/components/dashboard/UserPageHeader';
 import UserTable from '@/components/dashboard/UserTable';
 import { useUsers } from '@/hooks/useUsers';
 
-export default function ActiveUsersPage() {
+export default function DeletedUsersPage() {
   const router = useRouter();
   const { getUsersByStatus, updateUser, deleteUser } = useUsers();
-  const activeUsers = getUsersByStatus('active');
+  const deletedUsers = getUsersByStatus('deleted');
 
   const handleEdit = (user: any) => {
     // Handle edit action
@@ -17,7 +17,7 @@ export default function ActiveUsersPage() {
   };
 
   const handleDelete = (userId: string) => {
-    if (confirm('Are you sure you want to delete this user?')) {
+    if (confirm('Are you sure you want to permanently delete this user?')) {
       deleteUser(userId);
     }
   };
@@ -28,7 +28,7 @@ export default function ActiveUsersPage() {
       <UserTabs />
       <div className="mt-6">
         <UserTable 
-          users={activeUsers} 
+          users={deletedUsers} 
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { FiUsers, FiSettings, FiPieChart, FiFileText } from 'react-icons/fi';
+import { FiUsers, FiSettings, FiPieChart, FiHelpCircle, FiMail } from 'react-icons/fi';
 
 type SubMenuItem = {
   title: string;
@@ -27,23 +27,25 @@ const menuItems: MenuItem[] = [
     title: 'Users',
     icon: <FiUsers className="w-5 h-5" />,
     subItems: [
+      { title: 'All', path: '/dashboard/users' },
       { title: 'Active', path: '/dashboard/users/active' },
       { title: 'Verified', path: '/dashboard/users/verified' },
+      { title: 'Pending', path: '/dashboard/users/pending' },
       { title: 'Declined', path: '/dashboard/users/declined' },
-    ],
-  },
-  {
-    title: 'Documents',
-    icon: <FiFileText className="w-5 h-5" />,
-    subItems: [
-      { title: 'Pending', path: '/dashboard/documents/pending' },
-      { title: 'Approved', path: '/dashboard/documents/approved' },
+      { title: 'Inactive', path: '/dashboard/users/inactive' },
+      { title: 'Deactivated', path: '/dashboard/users/deactivated' },
+      { title: 'Deleted', path: '/dashboard/users/deleted' }
     ],
   },
   {
     title: 'Settings',
     icon: <FiSettings className="w-5 h-5" />,
-    path: '/dashboard/settings',
+    subItems: [
+      { title: 'General', path: '/dashboard/settings' },
+      { title: 'FAQ', path: '/dashboard/settings/faq' },
+      { title: 'Contacts', path: '/dashboard/settings/contacts' },
+      { title: 'Team Management', path: '/dashboard/settings/team' },
+    ],
   },
 ];
 

@@ -42,11 +42,11 @@ export default function Home() {
       </div>
       <h1 className="text-xl font-semibold">Admin Pages:</h1>
       <div className="flex gap-3">
-        <CustomLink href="/admin/dashboard" txt="Dashboard" />
-        <CustomLink href="/admin/users" txt="Users" />
-        <CustomLink href="/admin/roles" txt="Roles" />
-        <CustomLink href="/admin/permissions" txt="Permissions" />
-        <CustomLink href="/admin/settings" txt="Settings" />
+        <CustomLink href="/dashboard" txt="Dashboard" />
+        <CustomLink href="/dashboard/users" txt="Users" />
+        <CustomLink href="/dashboard/roles" txt="Roles" />
+        <CustomLink href="/dashboard/permissions" txt="Permissions" />
+        <CustomLink href="/dashboard/settings" txt="Settings" />
       </div>
       <h1 className="text-xl font-semibold">System Pages:</h1>
       <div className="flex gap-3">

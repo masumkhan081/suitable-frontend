@@ -6,10 +6,10 @@ import { UserPageHeader } from '@/components/dashboard/UserPageHeader';
 import UserTable from '@/components/dashboard/UserTable';
 import { useUsers } from '@/hooks/useUsers';
 
-export default function ActiveUsersPage() {
+export default function InactiveUsersPage() {
   const router = useRouter();
   const { getUsersByStatus, updateUser, deleteUser } = useUsers();
-  const activeUsers = getUsersByStatus('active');
+  const inactiveUsers = getUsersByStatus('inactive');
 
   const handleEdit = (user: any) => {
     // Handle edit action
@@ -28,7 +28,7 @@ export default function ActiveUsersPage() {
       <UserTabs />
       <div className="mt-6">
         <UserTable 
-          users={activeUsers} 
+          users={inactiveUsers} 
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

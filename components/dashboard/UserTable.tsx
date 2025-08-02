@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Circle } from 'lucide-react';
 import { thead1 } from './data';
 import { User } from '@/types/index';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface UserTableProps {
   users: User[];
@@ -19,6 +20,26 @@ const Negative = () => (
 );
 
 export default function UserTable({ users, onEdit, onDelete }: UserTableProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Determine which tab we're currently on for the back navigation
+  const getCurrentTab = () => {
+    if (pathname.includes('/active')) return 'active';
+    if (pathname.includes('/verified')) return 'verified';
+    if (pathname.includes('/pending')) return 'pending';
+    if (pathname.includes('/declined')) return 'declined';
+    if (pathname.includes('/inactive')) return 'inactive';
+    if (pathname.includes('/deactivated')) return 'deactivated';
+    if (pathname.includes('/deleted')) return 'deleted';
+    return 'all';
+  };
+
+  const handleUserClick = (userId: string) => {
+    const currentTab = getCurrentTab();
+    router.push(`/dashboard/users/${userId}?from=${currentTab}`);
+  };
+
   return (
     <div className="overflow-x-auto w-full overflow-y-auto">
       <table className="table-auto relative bg-gray-100 min-w-full overflow-y-auto">
@@ -42,10 +63,12 @@ export default function UserTable({ users, onEdit, onDelete }: UserTableProps) {
                 className="h-auto border-b border-gray-200 hover:bg-gray-50 transition-colors"
               >
                 <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                  {user['First Name']}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                  {user['Last Name']}
+                  <button
+                    onClick={() => handleUserClick(user.id || '')}
+                    className="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors"
+                  >
+                    {user['First Name']} {user['Last Name']}
+                  </button>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
                   {user.Age}
