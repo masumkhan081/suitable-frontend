@@ -100,7 +100,7 @@ export function UserPageHeader({ onSearch }: UserPageHeaderProps) {
       <div className="flex items-center justify-between">
       {/* Dynamic Title */}
       <div className="flex items-center">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
           {activeTab.label}
         </h2>
       </div>
@@ -109,12 +109,12 @@ export function UserPageHeader({ onSearch }: UserPageHeaderProps) {
       <div className="relative">
         <button
           onClick={toggleFilter}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 shadow-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 shadow-sm"
         >
-          <FiFilter className="w-4 h-4 text-gray-600" />
-          <span className="text-sm font-medium text-gray-700">Filter</span>
+          <FiFilter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter</span>
           <FiChevronDown 
-            className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${
+            className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform duration-200 ${
               isFilterOpen ? 'rotate-180' : ''
             }`} 
           />
@@ -122,19 +122,19 @@ export function UserPageHeader({ onSearch }: UserPageHeaderProps) {
 
         {/* Dropdown Menu */}
         {isFilterOpen && (
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+          <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
             <div className="py-2">
-              <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+              <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700">
                 User Types
               </div>
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => handleTabClick(tab.path)}
-                  className={`w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50 transition-colors duration-150 ${
+                  className={`w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 ${
                     activeTab.id === tab.id
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-500'
-                      : 'text-gray-700'
+                      ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 border-r-2 border-blue-500 dark:border-blue-400'
+                      : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   <span className="mr-3">{tab.icon}</span>
@@ -158,21 +158,21 @@ export function UserPageHeader({ onSearch }: UserPageHeaderProps) {
       {/* Search Field - positioned just above tabs */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <FiSearch className="h-5 w-5 text-gray-400" />
+          <FiSearch className="h-5 w-5 text-gray-400 dark:text-gray-500" />
         </div>
         <input
           type="text"
           value={searchTerm}
           onChange={handleSearchChange}
           placeholder="Search users by name, email, phone..."
-          className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 dark:focus:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 text-sm transition-colors duration-200"
         />
         {searchTerm && (
           <button
             onClick={clearSearch}
             className="absolute inset-y-0 right-0 pr-3 flex items-center"
           >
-            <FiX className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+            <FiX className="h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" />
           </button>
         )}
       </div>

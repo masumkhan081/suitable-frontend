@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiUsers, FiSettings, FiPieChart, FiHelpCircle, FiMail } from 'react-icons/fi';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 type SubMenuItem = {
   title: string;
@@ -52,6 +53,33 @@ const menuItems: MenuItem[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Load expanded items from localStorage on component mount
+  useEffect(() => {
+    try {
+      const savedExpandedItems = localStorage.getItem('sidebar-expanded-items');
+      if (savedExpandedItems) {
+        const parsed = JSON.parse(savedExpandedItems);
+        setExpandedItems(parsed);
+      }
+    } catch (error) {
+      console.warn('Failed to load sidebar state from localStorage:', error);
+    } finally {
+      setIsInitialized(true);
+    }
+  }, []);
+
+  // Save expanded items to localStorage whenever it changes
+  useEffect(() => {
+    if (isInitialized) {
+      try {
+        localStorage.setItem('sidebar-expanded-items', JSON.stringify(expandedItems));
+      } catch (error) {
+        console.warn('Failed to save sidebar state to localStorage:', error);
+      }
+    }
+  }, [expandedItems, isInitialized]);
 
   const toggleItem = (title: string) => {
     setExpandedItems(prev => ({
@@ -67,18 +95,21 @@ export function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-white shadow-md h-screen fixed left-0 top-0 p-4 overflow-y-auto">
-      <div className="text-xl font-bold mb-8 p-2">Dashboard</div>
+    <div className="w-64 bg-white dark:bg-gray-800 shadow-md h-screen fixed left-0 top-0 p-4 overflow-y-auto transition-colors duration-200">
+      <div className="flex items-center justify-between mb-8 p-2">
+        <div className="text-xl font-bold text-gray-900 dark:text-white">Dashboard</div>
+        <ThemeToggle />
+      </div>
       <nav className="space-y-1">
         {menuItems.map((item) => (
           <div key={item.title} className="mb-1">
             {item.path ? (
               <Link
                 href={item.path}
-                className={`flex items-center p-3 rounded-lg ${
+                className={`flex items-center p-3 rounded-lg transition-colors duration-150 ${
                   isActive(item.path || '')
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
                 <span className="mr-3">{item.icon}</span>
@@ -88,10 +119,10 @@ export function Sidebar() {
               <>
                 <button
                   onClick={() => toggleItem(item.title)}
-                  className={`w-full flex items-center justify-between p-3 rounded-lg ${
+                  className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-150 ${
                     isParentActive(item.subItems)
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   <div className="flex items-center">
@@ -121,10 +152,10 @@ export function Sidebar() {
                       <Link
                         key={subItem.path}
                         href={subItem.path}
-                        className={`block p-2 text-sm rounded ${
+                        className={`block p-2 text-sm rounded transition-colors duration-150 ${
                           isActive(subItem.path)
-                            ? 'bg-blue-100 text-blue-700 font-medium'
-                            : 'text-gray-600 hover:bg-gray-100'
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                         }`}
                       >
                         {subItem.title}

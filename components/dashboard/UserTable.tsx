@@ -42,75 +42,75 @@ export default function UserTable({ users, onEdit, onDelete }: UserTableProps) {
 
   return (
     <div className="overflow-x-auto w-full overflow-y-auto">
-      <table className="table-auto relative bg-gray-100 min-w-full overflow-y-auto">
-        <thead className="sticky bg-white z-10 top-0 left-0 right-0">
-          <tr className="bg-white">
+      <table className="table-auto relative bg-gray-100 dark:bg-gray-800 min-w-full overflow-y-auto">
+        <thead className="sticky bg-white dark:bg-gray-800 z-10 top-0 left-0 right-0">
+          <tr className="bg-white dark:bg-gray-800">
             {thead1.map((header, index) => (
               <th
                 key={index}
-                className="whitespace-nowrap px-4 py-3 text-left border border-gray-300 text-sm font-medium text-gray-700"
+                className="whitespace-nowrap px-4 py-3 text-left border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 {header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white">
+        <tbody className="bg-white dark:bg-gray-800">
           {users.length > 0 ? (
             users.map((user, index) => (
               <tr 
                 key={user.id || index} 
-                className="h-auto border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                className="h-auto border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                   <button
                     onClick={() => handleUserClick(user.id || '')}
-                    className="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium transition-colors"
                   >
                     {user['First Name']} {user['Last Name']}
                   </button>
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
+                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                   {user.Age}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
+                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                   {user.Gender}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
+                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                   {user.Email}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500 min-w-[165px]">
+                <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 min-w-[165px]">
                   {user.Phone}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
+                <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                   {user.Address}
                 </td>
                 <td className="px-4 py-3 min-w-auto whitespace-nowrap">
                   <div className="flex flex-col gap-2 items-start">
                     <span className="flex items-center gap-2">
                       <span>{user.Status.ageVerified ? <Positive /> : <Negative />}</span>
-                      <span className="text-sm font-medium text-gray-700">Age</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Age</span>
                     </span>
                     <span className="flex items-center gap-2">
                       <span>{user.Status.incomeVerified ? <Positive /> : <Negative />}</span>
-                      <span className="text-sm font-medium text-gray-700">Income</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Income</span>
                     </span>
                     <span className="flex items-center gap-2">
                       <span>{user.Status.identityVerified ? <Positive /> : <Negative />}</span>
-                      <span className="text-sm font-medium text-gray-700">Identity</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Identity</span>
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
+                <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                   {user.Revenue}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
+                <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                   {user.Rent}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-500">
+                <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                   {user.Deposit}
                 </td>
-                <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
                   {user.Total}
                 </td>
                 <td className="px-4 py-3 text-sm">
@@ -137,7 +137,7 @@ export default function UserTable({ users, onEdit, onDelete }: UserTableProps) {
             <tr>
               <td 
                 colSpan={thead1.length} 
-                className="px-4 py-6 text-center text-gray-500"
+                className="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
               >
                 No users found
               </td>

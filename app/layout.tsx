@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 // import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -23,9 +24,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className=" bg-slate-100 min-w-screen min-h-screen">
-        {children}
+    <html lang="en" suppressHydrationWarning className="h-full">
+      <body className="h-full min-w-screen min-h-screen transition-colors duration-200">
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
