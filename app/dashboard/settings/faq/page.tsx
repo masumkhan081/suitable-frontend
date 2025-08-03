@@ -244,7 +244,7 @@ export default function FAQPage() {
 
           {faqs.length === 0 && (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              No FAQs available. Click "Add FAQ" to create your first one.
+              <p className="text-gray-600 dark:text-gray-400">No FAQs available. Click &quot;Add FAQ&quot; to create your first FAQ.</p>
             </div>
           )}
         </div>

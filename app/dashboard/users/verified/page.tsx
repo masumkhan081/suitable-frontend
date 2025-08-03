@@ -7,11 +7,10 @@ import UserTable from '@/components/dashboard/UserTable';
 import { useUsers } from '@/hooks/useUsers';
 
 export default function VerifiedUsersPage() {
-  const router = useRouter();
-  const { getUsersByStatus, updateUser, deleteUser } = useUsers();
+  const { getUsersByStatus, deleteUser } = useUsers();
   const verifiedUsers = getUsersByStatus('verified');
 
-  const handleEdit = (user: any) => {
+  const handleEdit = (user: { id: string; [key: string]: unknown }) => {
     // Handle edit action
     console.log('Edit user:', user);
   };

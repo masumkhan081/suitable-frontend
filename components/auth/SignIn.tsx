@@ -87,8 +87,7 @@ export default function SignIn() {
       <CustomButton styleKey="authForm" txt="Sign Up" onClick={handleSubmit} />
 
       <p className="flex gap-2 items-center justify-center">
-        Don't have an account?
-        <CustomLink href="/auth/sign-up" txt="Sign up" />
+        <p className="text-sm text-gray-600">Don&apos;t have an account? <a href="/auth/sign-up" className="text-blue-600 hover:underline">Sign up</a></p>
       </p>
     </form>
   )

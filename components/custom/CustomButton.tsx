@@ -1,13 +1,12 @@
-import React, { MouseEventHandler, FormEventHandler, ReactNode } from 'react'
-import { cn } from '@/0.lib/utils'
+import React from 'react'
 // Define the type for style keys
 export type ButtonStyleKey = 'null' | 'default' | 'authForm' | 'gender' | 'selectedGender' | 'onboardingNext'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   txt?: string
-  startIcon?: ReactNode
+  startIcon?: React.ReactNode
   styleKey?: ButtonStyleKey
-  endIcon?: ReactNode
+  endIcon?: React.ReactNode
 }
 
 export default function CustomButton({
@@ -37,7 +36,6 @@ export default function CustomButton({
       disabled={disabled}
       title={disabled ? 'Disabled' : ''}
       onClick={onClick}
-      // if style prop presents, then the stylekey will not apply using cn
       className={styleMap[styleKey]}
       {...props}
     >

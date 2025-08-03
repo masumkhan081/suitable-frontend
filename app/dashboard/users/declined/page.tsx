@@ -1,17 +1,15 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { UserTabs } from '@/components/dashboard/UserTabs';
 import { UserPageHeader } from '@/components/dashboard/UserPageHeader';
 import UserTable from '@/components/dashboard/UserTable';
 import { useUsers } from '@/hooks/useUsers';
 
 export default function DeclinedUsersPage() {
-  const router = useRouter();
-  const { getUsersByStatus, updateUser, deleteUser } = useUsers();
+  const { getUsersByStatus, deleteUser } = useUsers();
   const declinedUsers = getUsersByStatus('declined');
 
-  const handleEdit = (user: any) => {
+  const handleEdit = (user: { id: string; [key: string]: unknown }) => {
     // Handle edit action
     console.log('Edit user:', user);
   };

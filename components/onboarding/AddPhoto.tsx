@@ -1,7 +1,6 @@
-import EnhanceText from '@/components/custom/EnhanceText'
 import React from 'react'
 
-type Props = {}
+type Props = Record<string, unknown>
 
 export default function AddPhoto({}: Props) {
   return (

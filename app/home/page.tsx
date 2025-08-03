@@ -1,12 +1,10 @@
 import EnhanceText from '@/components/custom/EnhanceText'
 import React from 'react'
 
-type Props = {}
-
-export default function page({}: Props) {
+export default function page() {
   return (
     <div>
       <EnhanceText txt="Home" styleKey="appTitle" />
     </div>
   )
-}   
+}

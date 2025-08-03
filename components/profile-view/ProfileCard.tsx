@@ -1,7 +1,7 @@
 import React from 'react'
 import EnhanceText from '../custom/EnhanceText'
 
-type Props = {}
+type Props = Record<string, unknown>
 
 export default function ProfileCard({}: Props) {
   return (

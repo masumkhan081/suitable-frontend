@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FiArrowLeft, FiUser, FiMail, FiMapPin, FiCalendar, FiHeart, FiX, FiCheck, FiUsers, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useUsers } from '@/hooks/useUsers';
 import { use, useState } from 'react';
@@ -11,6 +12,17 @@ interface ActivityDetailPageProps {
     id: string;
     type: string;
   }>;
+}
+
+interface ActivityItem {
+  id: string;
+  name: string;
+  email: string;
+  address: string;
+  profileImage: string | null;
+  activityDate: string;
+  age: number;
+  activityType?: string;
 }
 
 // Mock data for different activity types
@@ -337,10 +349,12 @@ export default function ActivityDetailPage({ params }: ActivityDetailPageProps) 
                   {/* Profile Image */}
                   <div className="w-16 h-16 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
                     {item.profileImage ? (
-                      <img
+                      <Image
                         src={item.profileImage}
                         alt={item.name}
                         className="w-16 h-16 rounded-full object-cover"
+                        width={64}
+                        height={64}
                       />
                     ) : (
                       <FiUser className="w-8 h-8 text-gray-600 dark:text-gray-300" />
@@ -382,7 +396,7 @@ export default function ActivityDetailPage({ params }: ActivityDetailPageProps) 
                       {type === 'passed' && 'Passed'}
                       {type === 'rejected' && 'Rejected'}
                       {type === 'matched' && 'Matched'}
-                      {type === 'timeline' && (item as any).activityType?.replace('_', ' ')}
+                      {type === 'timeline' && (item as ActivityItem).activityType?.replace('_', ' ')}
                     </div>
                   </div>
                 </div>

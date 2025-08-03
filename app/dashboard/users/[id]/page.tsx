@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FiArrowLeft, FiUser, FiMail, FiPhone, FiMapPin, FiCalendar, FiCamera, FiBarChart, FiActivity, FiCreditCard } from 'react-icons/fi';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useUsers } from '@/hooks/useUsers';
 import { useState, use, useEffect } from 'react';
@@ -76,7 +77,7 @@ export default function UserDetailPage({ params }: UserDetailPageProps) {
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6 text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">User Not Found</h2>
-          <p className="text-gray-600">The user you're looking for doesn't exist.</p>
+          <p className="text-gray-600">The user you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );
@@ -106,10 +107,12 @@ export default function UserDetailPage({ params }: UserDetailPageProps) {
           <div className="absolute left-8" style={{ top: 'calc(100% - 96px)' }}>
             <div className="w-36 h-36 bg-white rounded-full flex items-center justify-center border-4 border-white shadow-lg">
               {user.profileImage ? (
-                <img
+                <Image
                   src={user.profileImage}
                   alt={`${user['First Name']} ${user['Last Name']}`}
                   className="w-full h-full rounded-full object-cover"
+                  width={144}
+                  height={144}
                 />
               ) : (
                 <FiUser className="w-15 h-15 text-gray-400" />
@@ -765,21 +768,22 @@ export default function UserDetailPage({ params }: UserDetailPageProps) {
                   <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Saved Sarah Ahmed's profile</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Saved Sarah Ahmed&apos;s profile</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">2 hours ago</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Passed on Zara Ali's profile</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Passed on Emily Chen&apos;s profile</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Passed on Zara Ali&apos;s profile</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">3 hours ago</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Rejected Nadia Malik's profile</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Rejected Nadia Malik&apos;s profile</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">4 hours ago</p>
                     </div>
                   </div>

@@ -1,17 +1,13 @@
 'use client'
 import React, { useState } from 'react'
-import EnhanceText from '../custom/EnhanceText'
-import CustomInput from '../custom/CustomInput'
-import CustomCheckbox from '../custom/CustomCheckbox'
-import CustomRadioGroup from '../custom/CustomRadioGroup'
-
 import CustomButton from '../custom/CustomButton'
+import CustomInput from '../custom/CustomInput'
+import CustomLink from '../custom/CustomLink'
+import CustomCheckbox from '../custom/CustomCheckbox'
+import { IErrorSignup } from '@/0.types/auth.type'
 import { getSchemaValidation } from '@/0.lib/getSchemaValidation'
 import { signupSchema } from '@/0.schema/auth.schema'
-import { IErrorSignup } from '@/0.types/auth.type'
-import CustomDatePicker from '../custom/CustomDatePicker'
-import CustomLink from '../custom/CustomLink'
-//
+
 export default function SignUp() {
   // states
   const [username, setUsername] = useState('')

@@ -9,11 +9,10 @@ import { useUsers } from '@/hooks/useUsers';
 import { User } from '@/types/index';
 
 export default function UsersPage() {
-  const router = useRouter();
-  const { users, updateUser, deleteUser } = useUsers();
+  const { users, deleteUser } = useUsers();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleEdit = (user: any) => {
+  const handleEdit = (user: { id: string; [key: string]: unknown }) => {
     // Handle edit action
     console.log('Edit user:', user);
   };

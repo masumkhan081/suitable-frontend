@@ -1,4 +1,3 @@
-import CustomLink from '@/components/custom/CustomLink'
 import SignIn from '@/components/auth/SignIn'
 import EnhanceText from '@/components/custom/EnhanceText'
 import { Shell } from 'lucide-react'

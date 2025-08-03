@@ -1,7 +1,6 @@
 import EnhanceText from '@/components/custom/EnhanceText'
 import SignUp from '../../../components/auth/SignUp'
-import CustomLink from '@/components/custom/CustomLink'
-import { List, Shell } from 'lucide-react'
+import { Shell } from 'lucide-react'
 
 export default function page() {
   return (

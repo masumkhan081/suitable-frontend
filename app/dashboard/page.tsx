@@ -115,15 +115,6 @@ export default function DashboardPage() {
     data: data[type as keyof typeof data]
   }));
   
-  // Summary statistics
-  const currentMonth = data.Active[data.Active.length - 1];
-  const previousMonth = data.Active[data.Active.length - 2];
-  const growthRate = ((currentMonth - previousMonth) / previousMonth * 100).toFixed(1);
-  
-  const totalUsers = Object.values(data).reduce((acc, userTypeData) => 
-    acc + userTypeData[userTypeData.length - 1], 0
-  );
-  
   // Render cards based on view mode
   const renderUserCards = () => {
     const filteredUserTypes = userTypes.filter(type => type !== 'All');
@@ -132,7 +123,7 @@ export default function DashboardPage() {
       return (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors duration-200">
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredUserTypes.map((type, index) => {
+            {filteredUserTypes.map((type) => {
               const currentValue = data[type as keyof typeof data][data[type as keyof typeof data].length - 1];
               const typeData = data[type as keyof typeof data];
               const current = typeData[typeData.length - 1];
@@ -189,7 +180,7 @@ export default function DashboardPage() {
     if (viewMode === 'compact') {
       return (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          {filteredUserTypes.map((type, index) => {
+          {filteredUserTypes.map((type) => {
             const currentValue = data[type as keyof typeof data][data[type as keyof typeof data].length - 1];
             const typeData = data[type as keyof typeof data];
             const current = typeData[typeData.length - 1];
@@ -235,7 +226,7 @@ export default function DashboardPage() {
     // Default grid view
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {filteredUserTypes.map((type, index) => {
+        {filteredUserTypes.map((type) => {
           const currentValue = data[type as keyof typeof data][data[type as keyof typeof data].length - 1];
           const typeData = data[type as keyof typeof data];
           const current = typeData[typeData.length - 1];
