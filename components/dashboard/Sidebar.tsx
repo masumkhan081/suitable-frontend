@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { FiUsers, FiSettings, FiPieChart, FiHelpCircle, FiMail } from 'react-icons/fi';
+import { FiHome, FiUsers, FiSettings, FiPieChart, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 type SubMenuItem = {

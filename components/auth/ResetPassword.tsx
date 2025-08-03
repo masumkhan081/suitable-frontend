@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 import React, { useState } from "react";
 import EnhanceText from "../custom/EnhanceText";
@@ -14,29 +13,23 @@ import CustomDatePicker from "../custom/CustomDatePicker";
 //
 export default function ResetPassword() {
   // states
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [gender, setGender] = useState("Male");
-  const [dob, setDob] = useState<Date | null>(null);
   //
-  const initErrors: IErrorSignup = {
-    name: "",
+  const initErrors = {
+    username: "",
     email: "",
     password: "",
-    gender: "",
-    dob: "",
   };
   const [errors, setErrors] = useState(initErrors);
   //
 
   const handleSubmit = () => {
     const data = {
-      name,
+      username,
       email,
       password,
-      gender,
-      dob,
     };
 
     // send schema key, type key, initerror key
@@ -72,15 +65,15 @@ export default function ResetPassword() {
           <div className="flex flex-col gap-4">
             <CustomInput
               styleKey="authForm"
-              label="Name"
-              id="name"
-              name="name"
+              label="Username"
+              id="username"
+              name="username"
               type="text"
               required
-              ph="Full Name"
-              value={name}
-              error={errors.name}
-              onChange={(e) => setName(e.target.value)}
+              ph="Username"
+              value={username}
+              error={errors.username}
+              onChange={(e) => setUsername(e.target.value)}
             />
             <CustomInput
               styleKey="authForm"
@@ -107,16 +100,7 @@ export default function ResetPassword() {
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            <CustomRadioGroup
-              label="Gender"
-              styleKey="authForm"
-              options={["Male", "Female"]}
-              name="gender"
-              value={gender}
-              onChange={setGender}
-            />
 
-            <CustomDatePicker label="Date of Birth" value={dob} onChange={(e) => setDob(e)} />
 
           </div>
 

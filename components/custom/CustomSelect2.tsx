@@ -1,4 +1,3 @@
-import { ArrowDown2, TickCircle } from "iconsax-react";
 import { useState, useEffect, useRef } from "react";
 
 export type OptionType = string | { value: string; label: string };

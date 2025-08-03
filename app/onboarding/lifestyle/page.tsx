@@ -1,5 +1,4 @@
-
-import CustomLink from '@/components/custom/CustomLink'
+import React from 'react'
 //
 export default function page() {
   return (

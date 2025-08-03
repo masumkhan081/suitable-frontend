@@ -18,7 +18,7 @@ export default function TermsAndConditionPage() {
                 Welcome to Suitable! By creating an account and using our dating platform, you agree 
                 to these terms and conditions. These terms govern your use of our matching services, 
                 messaging features, and all other aspects of the Suitable dating experience. If you 
-                don't agree with these terms, please don't use our service.
+                don&apos;t agree with these terms, please don&apos;t use our service.
               </p>
             </section>
 
@@ -48,7 +48,7 @@ export default function TermsAndConditionPage() {
                 <li>All profile information (age, photos, bio) must be truthful and current</li>
                 <li>Photos must be recent (within 2 years) and clearly show your face</li>
                 <li>You may only create one account per person</li>
-                <li>You're responsible for keeping your login credentials secure</li>
+                <li>You&apos;re responsible for keeping your login credentials secure</li>
                 <li>Catfishing or impersonating others is strictly prohibited</li>
                 <li>We reserve the right to verify your identity and remove fake profiles</li>
               </ul>
@@ -114,7 +114,7 @@ export default function TermsAndConditionPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">8. Disclaimer</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                The information on this website is provided on an "as is" basis. To the fullest extent 
+                The information on this website is provided on an &quot;as is&quot; basis. To the fullest extent 
                 permitted by law, this Company excludes all representations, warranties, conditions and 
                 terms relating to our website and the use of this website.
               </p>

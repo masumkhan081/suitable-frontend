@@ -91,7 +91,7 @@ export default function SignUp() {
         name="terms"
         required
         value=""
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
+        onChange={() => {}}
       >
         <span>
           I agree to the <CustomLink href="/terms" txt="terms" /> and{' '}

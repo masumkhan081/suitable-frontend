@@ -34,11 +34,6 @@ const NUMBER_OPTIONS = Array.from({ length: 11 }, (_, i) => ({
   label: i === 0 ? '0 (None)' : i === 10 ? '10 or more' : i.toString()
 }));
 
-const getDisplayValue = (value: string, options: {value: string, label: string}[]) => {
-  const option = options.find(opt => opt.value === value);
-  return option ? option.label : '';
-};
-
 type FormData = z.infer<typeof schema>
 
 const schema = z.object({

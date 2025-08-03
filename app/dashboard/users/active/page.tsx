@@ -1,6 +1,6 @@
 'use client';
 
-import { FiEdit, FiTrash2, FiUser } from 'react-icons/fi';
+
 import { UserTabs } from '@/components/dashboard/UserTabs';
 import { UserPageHeader } from '@/components/dashboard/UserPageHeader';
 import UserTable from '@/components/dashboard/UserTable';

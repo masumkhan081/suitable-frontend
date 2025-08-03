@@ -76,7 +76,7 @@ export default function SignIn() {
           name="terms"
           required
           value=""
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
+          onChange={() => {}}
         >
           <span>Remember me</span>
         </CustomCheckbox>

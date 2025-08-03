@@ -1,9 +1,7 @@
-import EnhanceText from '@/components/custom/EnhanceText'
-import { Check } from 'lucide-react'
 import React from 'react'
-import { Button } from '@/components/ui/button'
+import { Check } from 'lucide-react'
 
-export default async function SubscriptionSuccessfull({ params }: { params: { plan: string } }) {
+export default function page() {
   return (
     <div className="w-full h-full p-8 bg-white dark:bg-amber-950 min-h-screen flex flex-col items-center justify-center gap-4">
       <div className="max-w-[350px] mx-auto flex flex-col items-center justify-center shadow-lg gap-4 p-6 rounded-md">

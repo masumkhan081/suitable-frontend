@@ -17,7 +17,6 @@ export default function CustomButton({
   disabled = false,
   onClick,
   type = 'button',
-  className = '',
   ...props
 }: ButtonProps) {
   //

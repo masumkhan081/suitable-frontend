@@ -7,14 +7,13 @@ import { cn } from "@/0.lib/utils";
 import { CalendarIcon } from "lucide-react";
 
 export default function CustomDatePicker({
-  label,
-  value,
-  onChange,
-}: {
-  label: string,
-  value: Date;
-  onChange: (date: Date | undefined) => void;
-}) {
+  label = '',
+  id = '',
+  name = '',
+  required,
+  value = null,
+  ...props
+}: any) {
   return (
     <div className="flex flex-col gap-2  ">
       <label>{label}</label>
