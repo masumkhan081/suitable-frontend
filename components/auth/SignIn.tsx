@@ -1,14 +1,17 @@
 'use client'
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import CustomInput from '../custom/CustomInput'
 import CustomButton from '../custom/CustomButton'
-import { getSchemaValidation } from '@/0.lib/getSchemaValidation'
+import { getSchemaValidation } from '@/lib/getSchemaValidation'
 import { loginSchema } from '@/0.schema/auth.schema'
 import { IErrorLogin } from '@/0.types/auth.type'
 import CustomCheckbox from '../custom/CustomCheckbox'
 import CustomLink from '../custom/CustomLink'
+import { AuthService, tokenManager } from '@/services/authService'
 //
 export default function SignIn() {
+  const router = useRouter()
   // states
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -26,17 +29,23 @@ export default function SignIn() {
       password
     }
 
-    // send schema key, type key, initerror key
+    // Demo mode: Check for demo credentials
+    if (email === 'demo@suitable.com' && password === 'demo123') {
+      // Redirect to onboarding for UI testing
+      router.push('/onboarding')
+      return
+    }
 
+    // Regular validation for other credentials
     const result = getSchemaValidation({
       schema: loginSchema,
       data
     })
 
     if (result.success) {
-      alert('ok................')
+      // For any valid credentials, redirect to dashboard
+      router.push('/onboarding/personal-info/step-1')
     } else {
-      alert(JSON.stringify(result.error))
       setErrors((prevErrors) => ({ ...prevErrors, ...result.error }))
     }
   }
@@ -76,7 +85,7 @@ export default function SignIn() {
           name="terms"
           required
           value=""
-          onChange={() => {}}
+          onChange={() => { }}
         >
           <span>Remember me</span>
         </CustomCheckbox>
@@ -84,7 +93,7 @@ export default function SignIn() {
         <CustomLink href="/auth/reset-request" txt="Forgot Password" />
       </div>
 
-      <CustomButton styleKey="authForm" txt="Sign Up" onClick={handleSubmit} />
+      <CustomButton styleKey="authForm" txt="Sign In" onClick={handleSubmit} />
 
       <p className="flex gap-2 items-center justify-center">
         <p className="text-sm text-gray-600">Don&apos;t have an account? <a href="/auth/sign-up" className="text-blue-600 hover:underline">Sign up</a></p>

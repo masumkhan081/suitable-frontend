@@ -62,7 +62,7 @@ export default function PersonalInfo2() {
     handleSubmit,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    // resolver: zodResolver(schema),
     defaultValues: {
       currentAddress: {
         country: '',
@@ -81,7 +81,7 @@ export default function PersonalInfo2() {
   const onSubmit = (data: FormValues) => {
     console.log('Form submitted:', data)
     // Handle form submission, e.g., send to API
-    router.push('/onboarding/personal-info-3')
+    router.push('/onboarding/education-and-career/step-1')
   }
 
   return (

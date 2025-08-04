@@ -21,6 +21,18 @@ export default function page() {
         </div>
 
         <div className="md:min-w-[500px] min-w-[360px] w-auto flex flex-col gap-6">
+          {/* Demo Instructions */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h3 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">🎯 Demo Mode</h3>
+            <p className="text-sm text-blue-600 dark:text-blue-400 mb-2">
+              Use these credentials to test the onboarding flow:
+            </p>
+            <div className="bg-white dark:bg-gray-800 rounded p-2 font-mono text-sm">
+              <div className="text-gray-600 dark:text-gray-400"><strong className="text-gray-700 dark:text-gray-300">Email:</strong> demo@suitable.com</div>
+              <div className="text-gray-600 dark:text-gray-400"><strong className="text-gray-700 dark:text-gray-300">Password:</strong> demo123</div>
+            </div>
+          </div>
+
           <div className="flex flex-col gap-0 items-start justify-center">
             <EnhanceText txt="Welcome Back" styleKey="formTitle" />
             <span className="">Enter your credentials</span>

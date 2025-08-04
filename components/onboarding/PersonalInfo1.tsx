@@ -62,7 +62,7 @@ export default function PersonalInfo1() {
     setValue,
     watch
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    // resolver: zodResolver(schema),
     defaultValues: {
       dob: '',
       gender: '',

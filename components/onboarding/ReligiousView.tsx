@@ -91,7 +91,7 @@ export default function ReligiousView() {
     handleSubmit,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    // resolver: zodResolver(formSchema),
     defaultValues: {
       religiousHistory: '',
       prayerFrequency: '',
@@ -107,8 +107,9 @@ export default function ReligiousView() {
 
   const onSubmit: SubmitHandler<FormValues> = (data) => {
     console.log('Form submitted:', data)
-    router.push('/onboarding/religious/step-2')
+    router.push('/onboarding/add-photo')
   }
+  //
 
   return (
     <form
@@ -199,9 +200,8 @@ export default function ReligiousView() {
                 {...field}
                 rows={4}
                 maxLength={2000}
-                className={`w-full border ${
-                  errors.aboutYou ? 'border-red-500' : 'border-gray-300'
-                } rounded-md p-2 text-sm`}
+                className={`w-full border ${errors.aboutYou ? 'border-red-500' : 'border-gray-300'
+                  } rounded-md p-2 text-sm`}
                 placeholder="Share something nice about you (max 2000 characters)"
               />
             )}

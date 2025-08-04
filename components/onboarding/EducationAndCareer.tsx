@@ -32,7 +32,7 @@ export default function EducationAndCareer() {
     setValue,
     watch
   } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    // resolver: zodResolver(schema),
     defaultValues: {
       education: [
         {
@@ -63,7 +63,7 @@ export default function EducationAndCareer() {
 
   const onSubmit: SubmitHandler<FormValues> = (data) => {
     console.log('Form submitted:', data)
-    router.push('/onboarding/education-and-career/step-2')
+    router.push('/onboarding/religious-view')
   }
 
   return (
@@ -120,11 +120,10 @@ export default function EducationAndCareer() {
                       <input
                         {...field}
                         type="text"
-                        className={`w-full border ${
-                          errors.education?.[index]?.university
-                            ? 'border-red-500'
-                            : 'border-gray-300'
-                        } rounded-md p-2 text-sm`}
+                        className={`w-full border ${errors.education?.[index]?.university
+                          ? 'border-red-500'
+                          : 'border-gray-300'
+                          } rounded-md p-2 text-sm`}
                         placeholder="Enter university name"
                       />
                     )}
@@ -145,9 +144,8 @@ export default function EducationAndCareer() {
                       <input
                         {...field}
                         type="text"
-                        className={`w-full border ${
-                          errors.education?.[index]?.degree ? 'border-red-500' : 'border-gray-300'
-                        } rounded-md p-2 text-sm`}
+                        className={`w-full border ${errors.education?.[index]?.degree ? 'border-red-500' : 'border-gray-300'
+                          } rounded-md p-2 text-sm`}
                         placeholder="e.g., Bachelor of Science"
                       />
                     )}
@@ -181,9 +179,8 @@ export default function EducationAndCareer() {
                   <input
                     {...field}
                     type="text"
-                    className={`w-full border ${
-                      errors.profession ? 'border-red-500' : 'border-gray-300'
-                    } rounded-md p-2 text-sm`}
+                    className={`w-full border ${errors.profession ? 'border-red-500' : 'border-gray-300'
+                      } rounded-md p-2 text-sm`}
                     placeholder="e.g., Software Engineer"
                   />
                 )}
@@ -202,9 +199,8 @@ export default function EducationAndCareer() {
                   <input
                     {...field}
                     type="text"
-                    className={`w-full border ${
-                      errors.company ? 'border-red-500' : 'border-gray-300'
-                    } rounded-md p-2 text-sm`}
+                    className={`w-full border ${errors.company ? 'border-red-500' : 'border-gray-300'
+                      } rounded-md p-2 text-sm`}
                     placeholder="e.g., Tech Corp Inc."
                   />
                 )}

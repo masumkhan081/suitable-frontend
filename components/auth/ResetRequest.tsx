@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import CustomButton from '../custom/CustomButton'
 import CustomInput from '../custom/CustomInput'
+import CustomLink from '../custom/CustomLink'
 
 export default function ResetRequest() {
   // states
@@ -37,7 +38,7 @@ export default function ResetRequest() {
         name="email"
         type="email"
         required
-        ph="Email"
+        ph="Enter your email address"
         value={email}
         error={errors.email}
         onChange={(e) => setEmail(e.target.value)}
@@ -45,13 +46,18 @@ export default function ResetRequest() {
 
       <CustomButton
         styleKey="authForm"
-        txt="Sign Up"
+        txt="Send Reset Link"
         type="submit"
         onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
           e.preventDefault()
           handleSubmit()
         }}
       />
+
+      <p className="flex gap-2 items-center justify-center">
+        <span className="text-sm text-gray-600">Remember your password?</span>
+        <CustomLink href="/auth/sign-in" txt="Sign in here" />
+      </p>
     </form>
   )
 }

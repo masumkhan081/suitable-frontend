@@ -2,7 +2,7 @@ import React from "react";
 import { Popover, PopoverContent } from "../ui/popover";
 import { PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
-import { cn } from "@/0.lib/utils";
+import { cn } from "@/lib/utils";
 // import { Calendar } from "../ui/calendar";
 import { CalendarIcon } from "lucide-react";
 

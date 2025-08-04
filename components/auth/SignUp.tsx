@@ -1,14 +1,17 @@
 'use client'
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import CustomButton from '../custom/CustomButton'
 import CustomInput from '../custom/CustomInput'
 import CustomLink from '../custom/CustomLink'
 import CustomCheckbox from '../custom/CustomCheckbox'
 import { IErrorSignup } from '@/0.types/auth.type'
-import { getSchemaValidation } from '@/0.lib/getSchemaValidation'
+import { getSchemaValidation } from '@/lib/getSchemaValidation'
 import { signupSchema } from '@/0.schema/auth.schema'
 
 export default function SignUp() {
+  const router = useRouter()
+  
   // states
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -38,7 +41,8 @@ export default function SignUp() {
     })
 
     if (result.success) {
-      alert('ok................')
+      // Redirect to onboarding welcome page after successful signup
+      router.push('/onboarding')
     } else {
       alert(JSON.stringify(result.error))
       setErrors((prevErrors) => ({ ...prevErrors, ...result.error }))
