@@ -32,12 +32,12 @@ export default function ProfilePreview() {
 
   const handleMessage = () => {
     // In real app, this would open messaging interface
-    alert('Message feature would open here')
+
   }
 
   const handleLike = () => {
     // In real app, this would handle like/interest
-    alert('Like feature would be handled here')
+
   }
 
   return (
@@ -46,23 +46,23 @@ export default function ProfilePreview() {
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <button 
+            <button
               onClick={handleClose}
               className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
             >
               <X className="w-5 h-5" />
               <span>Close Preview</span>
             </button>
-            
+
             <div className="flex items-center space-x-3">
-              <button 
+              <button
                 onClick={handleLike}
                 className="flex items-center space-x-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg transition-colors"
               >
                 <Heart className="w-4 h-4" />
                 <span>Like</span>
               </button>
-              <button 
+              <button
                 onClick={handleMessage}
                 className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
               >
@@ -81,7 +81,7 @@ export default function ProfilePreview() {
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 sticky top-24">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Photos</h3>
-              
+
               <div className="space-y-4">
                 {/* Main Photo */}
                 <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
@@ -167,7 +167,7 @@ export default function ProfilePreview() {
             {/* Lifestyle & Values */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Lifestyle & Values</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -212,33 +212,33 @@ export default function ProfilePreview() {
             {/* Compatibility Indicators */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Compatibility</h3>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">Religious Values</span>
                   <div className="flex items-center space-x-2">
                     <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{width: '95%'}}></div>
+                      <div className="bg-green-500 h-2 rounded-full" style={{ width: '95%' }}></div>
                     </div>
                     <span className="text-sm font-medium text-green-600">95%</span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">Lifestyle Match</span>
                   <div className="flex items-center space-x-2">
                     <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{width: '88%'}}></div>
+                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '88%' }}></div>
                     </div>
                     <span className="text-sm font-medium text-blue-600">88%</span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-300">Future Goals</span>
                   <div className="flex items-center space-x-2">
                     <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div className="bg-purple-500 h-2 rounded-full" style={{width: '92%'}}></div>
+                      <div className="bg-purple-500 h-2 rounded-full" style={{ width: '92%' }}></div>
                     </div>
                     <span className="text-sm font-medium text-purple-600">92%</span>
                   </div>

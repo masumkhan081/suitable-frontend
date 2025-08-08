@@ -80,65 +80,120 @@ export interface ProfilePreferences {
   wearHijabKeepBeard: 'any' | 'yes' | 'no';
 }
 
+// Profile Response Types
+export interface ProfileResponse {
+  success: boolean;
+  message?: string;
+  data?: ProfileData;
+  error?: {
+    code: string;
+    message: string;
+    details: any[];
+  };
+}
+
+export interface ProfileListResponse {
+  success: boolean;
+  message?: string;
+  data?: ProfileData[];
+  error?: {
+    code: string;
+    message: string;
+    details: any[];
+  };
+}
+
+export interface ProfileCompletionResponse {
+  success: boolean;
+  message?: string;
+  data?: { percentage: number; missingFields: string[] };
+  error?: {
+    code: string;
+    message: string;
+    details: any[];
+  };
+}
+
 // Profile Service
 export class ProfileService {
   // Get current user's profile
-  static async getMyProfile(): Promise<ApiResponse<ProfileData>> {
-    return apiClient.get<ProfileData>('/profile/me');
+  static async getMyProfile(): Promise<ProfileResponse> {
+    return apiClient.get<ProfileResponse>('/api/profile/me');
   }
 
   // Update profile
-  static async updateProfile(data: Partial<ProfileData>): Promise<ApiResponse<ProfileData>> {
-    return apiClient.patch<ProfileData>('/profile/me', data);
+  static async updateProfile(data: Partial<ProfileData>): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>('/api/profile/me', data);
   }
 
   // Get profile by ID
-  static async getProfileById(id: string): Promise<ApiResponse<ProfileData>> {
-    return apiClient.get<ProfileData>(`/profile/${id}`);
+  static async getProfileById(id: string): Promise<ProfileResponse> {
+    return apiClient.get<ProfileResponse>(`/api/profile/${id}`);
   }
 
   // Upload profile photo
-  static async uploadPhoto(file: File, isMain: boolean = false): Promise<ApiResponse<ProfilePhoto>> {
+  static async uploadPhoto(file: File, isMain: boolean = false): Promise<ProfileResponse> {
     const formData = new FormData();
     formData.append('photo', file);
     formData.append('isMain', isMain.toString());
 
-    return apiClient.post<ProfilePhoto>('/profile/photos', formData);
+    return apiClient.post<ProfileResponse>('/api/profile/photos', formData);
   }
 
   // Get profile photos
-  static async getPhotos(): Promise<ApiResponse<ProfilePhoto[]>> {
-    return apiClient.get<ProfilePhoto[]>('/profile/photos');
+  static async getPhotos(): Promise<ProfileListResponse> {
+    return apiClient.get<ProfileListResponse>('/api/profile/photos');
   }
 
   // Delete photo
-  static async deletePhoto(photoId: string): Promise<ApiResponse<{ message: string }>> {
-    return apiClient.delete<{ message: string }>(`/profile/photos/${photoId}`);
+  static async deletePhoto(photoId: string): Promise<ProfileResponse> {
+    return apiClient.delete<ProfileResponse>(`/api/profile/photos/${photoId}`);
   }
 
   // Set main photo
-  static async setMainPhoto(photoId: string): Promise<ApiResponse<{ message: string }>> {
-    return apiClient.patch<{ message: string }>(`/profile/photos/${photoId}/main`);
+  static async setMainPhoto(photoId: string): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>(`/api/profile/photos/${photoId}/main`);
   }
 
   // Update preferences
-  static async updatePreferences(preferences: ProfilePreferences): Promise<ApiResponse<ProfilePreferences>> {
-    return apiClient.patch<ProfilePreferences>('/profile/preferences', preferences);
+  static async updatePreferences(preferences: ProfilePreferences): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>('/api/profile/preferences', preferences);
   }
 
   // Get preferences
-  static async getPreferences(): Promise<ApiResponse<ProfilePreferences>> {
-    return apiClient.get<ProfilePreferences>('/profile/preferences');
+  static async getPreferences(): Promise<ProfileResponse> {
+    return apiClient.get<ProfileResponse>('/api/profile/preferences');
   }
 
   // Search profiles
-  static async searchProfiles(filters?: Partial<ProfilePreferences>): Promise<ApiResponse<ProfileData[]>> {
+  static async searchProfiles(filters?: Partial<ProfilePreferences>): Promise<ProfileListResponse> {
     const queryParams = filters ? `?${new URLSearchParams(filters as any).toString()}` : '';
-    return apiClient.get<ProfileData[]>(`/profile/search${queryParams}`);
+    return apiClient.get<ProfileListResponse>(`/api/profile/search${queryParams}`);
   }
 
   // Get profile completion status
-  static async getCompletionStatus(): Promise<ApiResponse<{ percentage: number; missingFields: string[] }>> {
-    return apiClient.get<{ percentage: number; missingFields: string[] }>('/profile/completion');
+  static async getCompletionStatus(): Promise<ProfileCompletionResponse> {
+    return apiClient.get<ProfileCompletionResponse>('/api/profile/completion');
+  }
+
+  // Onboarding Step Methods (20% each step)
+  static async updateProfileStep1(data: any): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>('/api/profile/onboarding/step-1', data);
+  }
+
+  static async updateProfileStep2(data: any): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>('/api/profile/onboarding/step-2', data);
+  }
+
+  static async updateProfileStep3(data: any): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>('/api/profile/onboarding/step-3', data);
+  }
+
+  static async updateProfileStep4(data: any): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>('/api/profile/onboarding/step-4', data);
+  }
+
+  static async updateProfileStep5(data: any): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>('/api/profile/onboarding/step-5', data);
   }
 }

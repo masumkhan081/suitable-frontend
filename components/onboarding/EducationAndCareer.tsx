@@ -3,9 +3,11 @@
 import { useForm, Controller, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { useState } from 'react'
 import CustomButton from '../custom/CustomButton'
 import { ArrowRightIcon, PlusIcon, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { ProfileService } from '@/services/profileService'
 
 const schema = z.object({
   education: z
@@ -24,6 +26,8 @@ type FormValues = z.infer<typeof schema>
 
 export default function EducationAndCareer() {
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const {
     control,
@@ -32,7 +36,7 @@ export default function EducationAndCareer() {
     setValue,
     watch
   } = useForm<FormValues>({
-    // resolver: zodResolver(schema),
+    resolver: zodResolver(schema),
     defaultValues: {
       education: [
         {
@@ -61,9 +65,40 @@ export default function EducationAndCareer() {
     }
   }
 
-  const onSubmit: SubmitHandler<FormValues> = (data) => {
-    console.log('Form submitted:', data)
-    router.push('/onboarding/religious-view')
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Convert form data to match backend expectations
+      const profileData = {
+        education: data.education.map(edu => ({
+          institution: edu.university,
+          degree: edu.degree,
+          fieldOfStudy: '', // Not collected in this form
+          startDate: '', // Not collected in this form
+          endDate: '', // Not collected in this form
+          isCurrentlyStudying: false // Not collected in this form
+        })),
+        profession: data.profession,
+        company: data.company,
+        workExperience: [] // Not collected in this form
+      }
+
+      const response = await ProfileService.updateProfileStep3(profileData)
+      
+      if (response.success) {
+        // Navigate to next step on success
+        router.push('/onboarding/religious-view')
+      } else {
+        setError(response.error?.message || 'Failed to save education and career information')
+      }
+    } catch (err) {
+      console.error('Error saving education/career data:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -75,11 +110,16 @@ export default function EducationAndCareer() {
       <div className="w-full flex flex-col gap-2 items-start justify-start">
         <div className="w-full flex justify-between items-center">
           <span className="font-semibold">Your Education & Career</span>
-          <span className="text-blue-700">40%</span>
+          <span className="text-blue-700">60%</span>
         </div>
         <div className="w-full h-2 bg-gray-200 rounded-full">
-          <div className="h-2 w-[40%] bg-blue-500 rounded-full"></div>
+          <div className="h-2 w-[60%] bg-blue-500 rounded-full"></div>
         </div>
+        {error && (
+          <div className="w-full p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
       </div>
 
       <div className="w-full space-y-6">
@@ -215,9 +255,10 @@ export default function EducationAndCareer() {
         <div className="w-full flex justify-end pt-4">
           <CustomButton
             type="submit"
-            txt="Next"
+            txt={isLoading ? "Saving..." : "Next"}
             styleKey="onboardingNext"
-            endIcon={<ArrowRightIcon className="w-4 h-4" />}
+            endIcon={!isLoading && <ArrowRightIcon className="w-4 h-4" />}
+            disabled={isLoading}
           />
         </div>
       </div>

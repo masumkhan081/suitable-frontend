@@ -16,7 +16,7 @@ async function testRegister() {
         role: 'user'
       })
     });
-    
+
     const data = await response.json();
     console.log('Register Response:', data);
     return data;
@@ -38,7 +38,7 @@ async function testLogin() {
         password: 'password123'
       })
     });
-    
+
     const data = await response.json();
     console.log('Login Response:', data);
     return data;
@@ -62,13 +62,13 @@ async function testHealth() {
 // Run tests
 async function runTests() {
   console.log('Testing API endpoints...\n');
-  
+
   await testHealth();
   console.log('\n---\n');
-  
+
   await testRegister();
   console.log('\n---\n');
-  
+
   await testLogin();
 }
 

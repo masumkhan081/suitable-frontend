@@ -3,10 +3,12 @@
 import { useForm, Controller, SubmitHandler, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useState } from 'react'
 import CustomButton from '../custom/CustomButton'
 import { ArrowRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import CustomSelect2, { OptionType } from '../custom/CustomSelect2'
+import { ProfileService } from '@/services/profileService'
 
 const RELIGIOUS_HISTORY: OptionType[] = [
   { value: 'born_muslim', label: 'Born Muslim' },
@@ -85,13 +87,15 @@ const renderSelect = (field: any, options: OptionType[], errors: any, control: a
 
 export default function ReligiousView() {
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<FormValues>({
-    // resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       religiousHistory: '',
       prayerFrequency: '',
@@ -105,9 +109,36 @@ export default function ReligiousView() {
 
   const aboutYou = useWatch({ control, name: 'aboutYou' })
 
-  const onSubmit: SubmitHandler<FormValues> = (data) => {
-    console.log('Form submitted:', data)
-    router.push('/onboarding/add-photo')
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Convert form data to match backend expectations
+      const profileData = {
+        religiousHistory: data.religiousHistory,
+        prayerFrequency: data.prayerFrequency,
+        sect: data.sect,
+        canReadQuran: data.canReadQuran === 'yes',
+        eatsHalal: data.eatsHalal === 'yes',
+        drinksAlcohol: data.drinksAlcohol === 'yes',
+        aboutYou: data.aboutYou || ''
+      }
+
+      const response = await ProfileService.updateProfileStep4(profileData)
+      
+      if (response.success) {
+        // Navigate to next step on success
+        router.push('/onboarding/add-photo')
+      } else {
+        setError(response.error?.message || 'Failed to save religious information')
+      }
+    } catch (err) {
+      console.error('Error saving religious data:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
   //
 
@@ -120,11 +151,16 @@ export default function ReligiousView() {
       <div className="w-full flex flex-col gap-2 items-start justify-start">
         <div className="w-full flex justify-between items-center">
           <span className="font-semibold">Your Religious Background</span>
-          <span className="text-blue-700">60%</span>
+          <span className="text-blue-700">80%</span>
         </div>
         <div className="w-full h-2 bg-gray-200 rounded-full">
-          <div className="h-2 w-[60%] bg-blue-500 rounded-full"></div>
+          <div className="h-2 w-[80%] bg-blue-500 rounded-full"></div>
         </div>
+        {error && (
+          <div className="w-full p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
       </div>
 
       <div className="w-full space-y-6">
@@ -219,9 +255,10 @@ export default function ReligiousView() {
         <div className="w-full flex justify-end pt-4">
           <CustomButton
             type="submit"
-            txt="Next"
+            txt={isLoading ? "Saving..." : "Next"}
             styleKey="onboardingNext"
-            endIcon={<ArrowRightIcon className="w-4 h-4" />}
+            endIcon={!isLoading && <ArrowRightIcon className="w-4 h-4" />}
+            disabled={isLoading}
           />
         </div>
       </div>

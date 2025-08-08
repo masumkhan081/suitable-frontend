@@ -1,12 +1,13 @@
 'use client'
-'use client'
-import { useForm, Controller, useFormContext } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { useState } from 'react'
 import CustomButton from '../custom/CustomButton'
 import CustomSelect2 from '../custom/CustomSelect2'
 import { ArrowRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { ProfileService } from '@/services/profileService'
 
 type SelectOption = {
   value: string
@@ -56,13 +57,15 @@ type FormValues = z.infer<typeof schema>
 
 export default function PersonalInfo2() {
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<FormValues>({
-    // resolver: zodResolver(schema),
+    resolver: zodResolver(schema),
     defaultValues: {
       currentAddress: {
         country: '',
@@ -78,10 +81,44 @@ export default function PersonalInfo2() {
     }
   })
 
-  const onSubmit = (data: FormValues) => {
-    console.log('Form submitted:', data)
-    // Handle form submission, e.g., send to API
-    router.push('/onboarding/education-and-career/step-1')
+  const onSubmit = async (data: FormValues) => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Convert form data to match backend expectations
+      const profileData = {
+        currentAddress: {
+          street: data.currentAddress.area,
+          city: data.currentAddress.city,
+          state: '', // Not collected in this form
+          country: data.currentAddress.country,
+          postcode: '' // Not collected in this form
+        },
+        backHomeAddress: {
+          street: data.homeAddress.area,
+          city: data.homeAddress.city,
+          state: '', // Not collected in this form
+          country: data.homeAddress.country,
+          postcode: '' // Not collected in this form
+        },
+        isWillingToRelocate: data.willingToRelocate === 'yes'
+      }
+
+      const response = await ProfileService.updateProfileStep2(profileData)
+      
+      if (response.success) {
+        // Navigate to next step on success
+        router.push('/onboarding/education-and-career/step-1')
+      } else {
+        setError(response.error?.message || 'Failed to save address information')
+      }
+    } catch (err) {
+      console.error('Error saving address data:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -98,6 +135,11 @@ export default function PersonalInfo2() {
         <div className="w-full h-2 bg-gray-200 rounded-full">
           <div className="h-2 w-[40%] bg-blue-500 rounded-full"></div>
         </div>
+        {error && (
+          <div className="w-full p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
       </div>
 
       <div className="w-full flex flex-col gap-4">
@@ -278,9 +320,10 @@ export default function PersonalInfo2() {
         <div className="w-full mt-6 flex justify-end">
           <CustomButton
             type="submit"
-            txt="Next"
+            txt={isLoading ? "Saving..." : "Next"}
             styleKey="onboardingNext"
-            endIcon={<ArrowRightIcon className="w-4 h-4" />}
+            endIcon={!isLoading && <ArrowRightIcon className="w-4 h-4" />}
+            disabled={isLoading}
           />
         </div>
       </div>

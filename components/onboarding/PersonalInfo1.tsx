@@ -2,10 +2,12 @@
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { useState } from 'react'
 import CustomButton from '../custom/CustomButton'
 import CustomSelect2 from '../custom/CustomSelect2'
 import { ArrowRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { ProfileService } from '@/services/profileService'
 
 const MARITAL_STATUSES = [
   'Single',
@@ -48,6 +50,8 @@ const schema = z.object({
 
 export default function PersonalInfo1() {
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   
   const heightOptions = Array.from({ length: 100 }, (_, i) => {
     const feet = Math.floor(i / 12) + 4
@@ -62,7 +66,7 @@ export default function PersonalInfo1() {
     setValue,
     watch
   } = useForm<FormData>({
-    // resolver: zodResolver(schema),
+    resolver: zodResolver(schema),
     defaultValues: {
       dob: '',
       gender: '',
@@ -76,13 +80,36 @@ export default function PersonalInfo1() {
 
   const genderValue = watch('gender')
 
-  const onSubmit = (data: FormData) => {
-    console.log({
-      ...data,
-      hasChildren: data.numberOfChildren !== '0'
-    })
-    // Here you would typically call an API or move to the next step
-    router.push('/onboarding/personal-info/step-2')
+  const onSubmit = async (data: FormData) => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Convert form data to match backend expectations
+      const profileData = {
+        dob: data.dob,
+        gender: data.gender as 'male' | 'female',
+        height: parseInt(data.height.split(' ')[0]) * 12 + parseInt(data.height.split(' ')[2]), // Convert to inches
+        maritalStatus: data.maritalStatus,
+        numberOfChildren: parseInt(data.numberOfChildren === '10+' ? '10' : data.numberOfChildren),
+        numberOfSiblings: parseInt(data.numberOfSiblings === '10+' ? '10' : data.numberOfSiblings),
+        ethnicOrigin: data.ethnicity
+      }
+
+      const response = await ProfileService.updateProfileStep1(profileData)
+      
+      if (response.success) {
+        // Navigate to next step on success
+        router.push('/onboarding/personal-info/step-2')
+      } else {
+        setError(response.error?.message || 'Failed to save profile data')
+      }
+    } catch (err) {
+      console.error('Error saving profile data:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -99,6 +126,11 @@ export default function PersonalInfo1() {
         <div className="w-full h-2 bg-gray-200 rounded-full">
           <div className="h-2 w-[20%] bg-blue-500 rounded-full"></div>
         </div>
+        {error && (
+          <div className="w-full p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
       </div>
 
       <div className="w-full flex flex-col gap-4">
@@ -251,9 +283,10 @@ export default function PersonalInfo1() {
           <CustomButton
             onClick={handleSubmit(onSubmit)}
             type="submit"
-            txt="Next"
+            txt={isLoading ? "Saving..." : "Next"}
             styleKey="onboardingNext"
-            endIcon={<ArrowRightIcon className="w-4 h-4" />}
+            endIcon={!isLoading && <ArrowRightIcon className="w-4 h-4" />}
+            disabled={isLoading}
           />
         </div>
       </div>

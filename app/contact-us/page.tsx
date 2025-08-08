@@ -24,8 +24,7 @@ export default function ContactUsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('Contact form submitted:', formData)
-    // Handle form submission here
-    alert('Thank you for your message! We will get back to you soon.')
+    // Handle form submission here 
     // Reset form
     setFormData({
       firstName: '',

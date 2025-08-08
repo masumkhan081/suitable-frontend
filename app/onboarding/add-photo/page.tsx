@@ -1,20 +1,70 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import AddPhoto from '@/components/onboarding/AddPhoto'
+import { ProfileService } from '@/services/profileService'
 
 export default function AddPhotoPage() {
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleUploadPhoto = () => {
-    // Handle photo upload logic here
-    console.log('Photo upload clicked')
-    router.push('/onboarding/subscription-plans')
+  const handleUploadPhoto = async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // For now, we'll complete the profile without actual photo upload
+      // In a real implementation, you'd handle file upload here
+      const profileData = {
+        hasPhoto: true,
+        photoUrl: '', // Would be set after actual upload
+        profileCompleted: true
+      }
+
+      const response = await ProfileService.updateProfileStep5(profileData)
+      
+      if (response.success) {
+        // Navigate to subscription plans on success (100% completion)
+        router.push('/onboarding/subscription-plans')
+      } else {
+        setError(response.error?.message || 'Failed to complete profile')
+      }
+    } catch (err) {
+      console.error('Error completing profile:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSkip = () => {
-    console.log('Skip photo clicked')
-    router.push('/onboarding/subscription-plans')
+  const handleSkip = async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Complete profile without photo
+      const profileData = {
+        hasPhoto: false,
+        photoUrl: '',
+        profileCompleted: true
+      }
+
+      const response = await ProfileService.updateProfileStep5(profileData)
+      
+      if (response.success) {
+        // Navigate to subscription plans on success (100% completion)
+        router.push('/onboarding/subscription-plans')
+      } else {
+        setError(response.error?.message || 'Failed to complete profile')
+      }
+    } catch (err) {
+      console.error('Error completing profile:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -41,6 +91,17 @@ export default function AddPhotoPage() {
               <p className="text-gray-600 dark:text-gray-300">
                 Upload a photo to make your profile visible to others
               </p>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-blue-700">100%</span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full">
+                <div className="h-2 w-[100%] bg-blue-500 rounded-full"></div>
+              </div>
+              {error && (
+                <div className="w-full p-3 bg-red-50 border border-red-200 rounded-md mt-2">
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              )}
             </div>
 
             <AddPhoto />
@@ -48,15 +109,17 @@ export default function AddPhotoPage() {
             <div className="w-full mt-6 flex flex-col gap-3">
               <button 
                 onClick={handleUploadPhoto}
-                className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                disabled={isLoading}
+                className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Upload Photo
+                {isLoading ? 'Completing Profile...' : 'Upload Photo'}
               </button>
               <button 
                 onClick={handleSkip}
-                className="w-full border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+                disabled={isLoading}
+                className="w-full border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Skip for Now
+                {isLoading ? 'Completing Profile...' : 'Skip for Now'}
               </button>
             </div>
 

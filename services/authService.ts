@@ -7,65 +7,87 @@ export interface LoginCredentials {
 }
 
 export interface SignupData {
-  fullName: string;
+  username: string;
   email: string;
   password: string;
-  confirmPassword: string;
+}
+
+export interface VerifyEmailData {
+  token: string;
+}
+
+export interface ResetPasswordData {
+  token: string;
+  email: string;
+  password: string;
+  confirm_password: string;
 }
 
 export interface User {
   id: string;
-  fullName: string;
+  username: string;
   email: string;
-  isVerified: boolean;
-  createdAt: string;
+  role: 'USER' | 'ADMIN';
+  onboardingCompletion: number;
+  hasProfile: boolean;
+  isVerified?: boolean;
+  createdAt?: string;
 }
 
 export interface AuthResponse {
-  user: User;
-  token: string;
+  success: boolean;
+  message?: string;
+  data?: {
+    token?: string;
+    user?: User;
+  };
+  error?: {
+    code: string;
+    message: string;
+    details: any[];
+  };
 }
 
 // Auth Service
 export class AuthService {
-  // Sign up
-  static async signup(data: SignupData): Promise<ApiResponse<AuthResponse>> {
-    return apiClient.post<AuthResponse>('/auth/signup', data);
+  // Sign up - matches backend /api/auth/register endpoint
+  static async signup(data: SignupData): Promise<AuthResponse> {
+    return apiClient.post<AuthResponse>('/api/auth/register', data);
   }
 
-  // Sign in
-  static async signin(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>> {
-    return apiClient.post<AuthResponse>('/auth/signin', credentials);
+  // Sign in - matches backend /api/auth/login endpoint
+  static async signin(credentials: LoginCredentials): Promise<AuthResponse> {
+    return apiClient.post<AuthResponse>('/api/auth/login', credentials);
   }
 
-  // Forgot password
-  static async forgotPassword(email: string): Promise<ApiResponse<{ message: string }>> {
-    return apiClient.post<{ message: string }>('/auth/forgot-password', { email });
+  // Verify email - matches backend /api/auth/verify-email endpoint
+  static async verifyEmail(data: VerifyEmailData): Promise<AuthResponse> {
+    return apiClient.post<AuthResponse>('/api/auth/verify-email', data);
   }
 
-  // Reset password
-  static async resetPassword(token: string, password: string): Promise<ApiResponse<{ message: string }>> {
-    return apiClient.post<{ message: string }>('/auth/reset-password', { token, password });
+  // Resend verification email - matches backend /api/auth/resend-verification-email endpoint
+  static async resendVerificationEmail(email: string): Promise<AuthResponse> {
+    return apiClient.post<AuthResponse>('/api/auth/resend-verification-email', { email });
   }
 
-  // Verify email
-  static async verifyEmail(token: string): Promise<ApiResponse<{ message: string }>> {
-    return apiClient.post<{ message: string }>('/auth/verify-email', { token });
+  // Request account recovery - matches backend /api/auth/request-recovery endpoint
+  static async requestAccountRecovery(email: string): Promise<AuthResponse> {
+    return apiClient.post<AuthResponse>('/api/auth/request-recovery', { email });
   }
 
-  // Get current user
-  static async getCurrentUser(): Promise<ApiResponse<User>> {
-    return apiClient.get<User>('/auth/me');
+  // Reset password - matches backend /api/auth/reset-password endpoint
+  static async resetPassword(data: ResetPasswordData): Promise<AuthResponse> {
+    return apiClient.post<AuthResponse>('/api/auth/reset-password', data);
   }
 
-  // Logout
-  static async logout(): Promise<ApiResponse<{ message: string }>> {
-    return apiClient.post<{ message: string }>('/auth/logout');
+  // Get current user - matches backend /api/auth/me endpoint
+  static async getCurrentUser(): Promise<User> {
+    return apiClient.get<User>('/api/auth/me');
   }
 
-  // Refresh token
-  static async refreshToken(): Promise<ApiResponse<{ token: string }>> {
-    return apiClient.post<{ token: string }>('/auth/refresh');
+  // Logout (placeholder - not implemented in backend yet)
+  static async logout(): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>('/logout');
   }
 }
 
