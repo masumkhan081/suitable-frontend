@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Check, Crown, Heart, Star, ArrowLeft } from 'lucide-react'
+import AuthGuard from '@/components/auth/authguard'
 
 export default function SubscriptionPlansPage() {
   const router = useRouter()
@@ -90,7 +91,8 @@ export default function SubscriptionPlansPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100 dark:from-gray-900 dark:via-purple-900 dark:to-gray-800">
+    <AuthGuard>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100 dark:from-gray-900 dark:via-purple-900 dark:to-gray-800">
       {/* Header */}
       <div className="w-full px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -261,6 +263,7 @@ export default function SubscriptionPlansPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import PersonalInfo1 from '@/components/onboarding/PersonalInfo1'
 import PersonalInfo2 from '@/components/onboarding/PersonalInfo2'
+import AuthGuard from '@/components/auth/authguard'
 
 interface Props {
   params: {
@@ -27,7 +28,8 @@ export default async function Page({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen max-h-screen w-full grid grid-cols-1 md:grid-cols-2 ">
+    <AuthGuard>
+      <div className="min-h-screen max-h-screen w-full grid grid-cols-1 md:grid-cols-2 ">
       <div className="col-span-1 hidden md:block bg-emerald-100 h-full ">
         {/* <img
                className="w-full h-full object-cover"
@@ -40,6 +42,7 @@ export default async function Page({ params }: Props) {
       <div className="col-span-1 h-full">
         {stepMap[step as keyof typeof stepMap]}
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

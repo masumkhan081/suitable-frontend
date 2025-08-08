@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { FiUsers, FiTrendingUp, FiActivity, FiBarChart, FiGrid, FiList, FiSquare } from 'react-icons/fi';
 import { useTheme } from '@/contexts/ThemeContext';
+import AuthGuard from '@/components/auth/authguard';
 
 // Dynamically import ApexCharts to avoid SSR issues
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
@@ -281,7 +282,8 @@ export default function DashboardPage() {
   };
   
   return (
-    <div className="space-y-6">
+    <AuthGuard>
+      <div className="space-y-6">
       {/* Dashboard Overview Header with View Toggle */}
       <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
         <div>
@@ -347,6 +349,7 @@ export default function DashboardPage() {
           />
         </div>
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   );
 }

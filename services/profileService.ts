@@ -193,7 +193,24 @@ export class ProfileService {
     return apiClient.patch<ProfileResponse>('/api/profile/onboarding/step-4', data);
   }
 
-  static async updateProfileStep5(data: any): Promise<ProfileResponse> {
-    return apiClient.patch<ProfileResponse>('/api/profile/onboarding/step-5', data);
+  static async updateProfileStep5(formData: FormData): Promise<ProfileResponse> {
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const token = localStorage.getItem('authToken');
+    
+    const response = await fetch(`${API_BASE_URL}/api/profile/onboarding/step-5`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Don't set Content-Type for FormData - browser will set it with boundary
+      },
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
   }
+
 }

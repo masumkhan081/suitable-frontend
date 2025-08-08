@@ -9,6 +9,8 @@ import { ArrowRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import CustomSelect2, { OptionType } from '../custom/CustomSelect2'
 import { ProfileService } from '@/services/profileService'
+import { toast } from 'sonner'
+import { getUserData, storeUserData } from '@/utils/auth'
 
 const RELIGIOUS_HISTORY: OptionType[] = [
   { value: 'born_muslim', label: 'Born Muslim' },
@@ -19,50 +21,58 @@ const RELIGIOUS_HISTORY: OptionType[] = [
   { value: 'other', label: 'Other' }
 ]
 
+// Must match backend enum: ["5 times a day", "Sometimes", "Rarely", "Never"]
 const PRAYER_OPTIONS: OptionType[] = [
-  { value: 'always', label: 'Always' },
-  { value: 'most_of_the_time', label: 'Most of the time' },
-  { value: 'sometimes', label: 'Sometimes' },
-  { value: 'rarely', label: 'Rarely' },
-  { value: 'never', label: 'Never' }
+  { value: '5 times a day', label: 'Always (5 times a day)' },
+  { value: 'Sometimes', label: 'Sometimes' },
+  { value: 'Rarely', label: 'Rarely' },
+  { value: 'Never', label: 'Never' }
 ]
 
+// Must match backend enum: ["Sunni", "Shia", "Other", "None"]
 const SECT_OPTIONS: OptionType[] = [
-  { value: 'sunni', label: 'Sunni' },
-  { value: 'shia', label: 'Shia' },
-  { value: 'sufi', label: 'Sufi' },
-  { value: 'other', label: 'Other' },
-  { value: 'prefer_not_to_say', label: 'Prefer not to say' }
+  { value: 'Sunni', label: 'Sunni' },
+  { value: 'Shia', label: 'Shia' },
+  { value: 'Other', label: 'Other' },
+  { value: 'None', label: 'Prefer not to say' }
 ]
 
+// Must match backend enum: ["Yes", "No", "Occasionally"]
 const YES_NO_OPTIONS: OptionType[] = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
-  { value: 'sometimes', label: 'Sometimes' }
+  { value: 'Yes', label: 'Yes' },
+  { value: 'No', label: 'No' },
+  { value: 'Occasionally', label: 'Sometimes' }
 ]
 
 const formSchema = z.object({
   religiousHistory: z.string({
     required_error: 'Religious history is required',
   }),
-  prayerFrequency: z.string({
+  prayerFrequency: z.enum(["5 times a day", "Sometimes", "Rarely", "Never"], {
     required_error: 'Prayer frequency is required',
+    invalid_type_error: 'Invalid prayer frequency',
   }),
-  sect: z.string({
+  sect: z.enum(["Sunni", "Shia", "Other", "None"], {
     required_error: 'Sect is required',
+    invalid_type_error: 'Invalid sect',
   }),
-  canReadQuran: z.string({
+  canReadQuran: z.enum(["Yes", "No", "Occasionally"], {
     required_error: 'This field is required',
+    invalid_type_error: 'Invalid value',
   }),
-  eatsHalal: z.string({
+  eatsHalal: z.enum(["Yes", "No", "Occasionally"], {
     required_error: 'This field is required',
+    invalid_type_error: 'Invalid value',
   }),
-  drinksAlcohol: z.string({
+  drinksAlcohol: z.enum(["Yes", "No", "Occasionally"], {
     required_error: 'This field is required',
+    invalid_type_error: 'Invalid value',
   }),
-  aboutYou: z.string().max(2000, {
+  aboutYou: z.string({
+    required_error: 'About you is required',
+  }).min(1, 'About you cannot be empty').max(2000, {
     message: 'Maximum 2000 characters allowed',
-  }).optional(),
+  }),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -98,11 +108,11 @@ export default function ReligiousView() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       religiousHistory: '',
-      prayerFrequency: '',
-      sect: '',
-      canReadQuran: '',
-      eatsHalal: '',
-      drinksAlcohol: '',
+      prayerFrequency: "5 times a day" as "5 times a day" | "Sometimes" | "Rarely" | "Never",
+      sect: "Sunni" as "Sunni" | "Shia" | "Other" | "None",
+      canReadQuran: "Yes" as "Yes" | "No" | "Occasionally",
+      eatsHalal: "Yes" as "Yes" | "No" | "Occasionally",
+      drinksAlcohol: "No" as "Yes" | "No" | "Occasionally",
       aboutYou: ''
     }
   })
@@ -114,28 +124,54 @@ export default function ReligiousView() {
     setError(null)
     
     try {
+      console.log('Form data before mapping:', data)
+      
       // Convert form data to match backend expectations
       const profileData = {
-        religiousHistory: data.religiousHistory,
-        prayerFrequency: data.prayerFrequency,
-        sect: data.sect,
-        canReadQuran: data.canReadQuran === 'yes',
-        eatsHalal: data.eatsHalal === 'yes',
-        drinksAlcohol: data.drinksAlcohol === 'yes',
-        aboutYou: data.aboutYou || ''
+        religion: 'Islam', // Default to Islam for religious view step
+        sect: data.sect, // Already matches backend enum: "Sunni", "Shia", "Other", "None"
+        prayerFrequency: data.prayerFrequency, // Already matches backend enum: "5 times a day", "Sometimes", "Rarely", "Never"
+        quranReadingStatus: data.canReadQuran, // Already matches backend enum: "Yes", "No", "Occasionally"
+        halalEatingStatus: data.eatsHalal, // Already matches backend enum: "Yes", "No", "Occasionally"
+        alcoholConsumptionStatus: data.drinksAlcohol, // Already matches backend enum: "Yes", "No", "Occasionally"
+        smokingStatus: 'No', // Default to No since not collected
+        aboutMe: data.aboutYou || 'No description provided'
       }
+      
+      console.log('Mapped data for backend:', profileData)
 
       const response = await ProfileService.updateProfileStep4(profileData)
       
       if (response.success) {
+        console.log('Step-4 success, showing toast and updating localStorage...')
+        // Show success toast
+        toast.success('Religious information saved successfully!')
+        
+        // Update user data in localStorage with new completion percentage
+        const currentUser = getUserData()
+        if (currentUser) {
+          const updatedUser = {
+            ...currentUser,
+            onboardingCompletion: 80, // Step 4 completion = 80%
+            hasProfile: true
+          }
+          const token = localStorage.getItem('authToken') || ''
+          storeUserData(updatedUser, token)
+          console.log('Updated user data in localStorage with completion: 80%')
+        }
+        
         // Navigate to next step on success
         router.push('/onboarding/add-photo')
       } else {
-        setError(response.error?.message || 'Failed to save religious information')
+        const errorMessage = response.error?.details?.join(', ') || response.error?.message || 'Failed to save religious information'
+        setError(errorMessage)
+        toast.error(errorMessage)
       }
     } catch (err) {
       console.error('Error saving religious data:', err)
-      setError('An unexpected error occurred. Please try again.')
+      const errorMessage = 'An unexpected error occurred. Please try again.'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }

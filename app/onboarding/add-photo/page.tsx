@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import AddPhoto from '@/components/onboarding/AddPhoto'
 import { ProfileService } from '@/services/profileService'
+import AuthGuard from '@/components/auth/authguard'
 
 export default function AddPhotoPage() {
   const router = useRouter()
@@ -68,7 +69,8 @@ export default function AddPhotoPage() {
   }
 
   return (
-    <div className="min-h-screen max-h-screen w-full grid grid-cols-1 md:grid-cols-2">
+    <AuthGuard>
+      <div className="min-h-screen max-h-screen w-full grid grid-cols-1 md:grid-cols-2">
       <div className="hidden md:block bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900">
         {/* Decorative background */}
         <div className="h-full flex items-center justify-center p-8">
@@ -136,6 +138,7 @@ export default function AddPhotoPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

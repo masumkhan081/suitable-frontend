@@ -8,6 +8,8 @@ import CustomButton from '../custom/CustomButton'
 import { ArrowRightIcon, PlusIcon, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ProfileService } from '@/services/profileService'
+import { toast } from 'sonner'
+import { getUserData, storeUserData } from '@/utils/auth'
 
 const schema = z.object({
   education: z
@@ -72,30 +74,48 @@ export default function EducationAndCareer() {
     try {
       // Convert form data to match backend expectations
       const profileData = {
-        education: data.education.map(edu => ({
+        educations: data.education.map(edu => ({
           institution: edu.university,
-          degree: edu.degree,
-          fieldOfStudy: '', // Not collected in this form
-          startDate: '', // Not collected in this form
-          endDate: '', // Not collected in this form
-          isCurrentlyStudying: false // Not collected in this form
+          course: edu.degree, // Backend expects 'course', frontend has 'degree'
         })),
-        profession: data.profession,
-        company: data.company,
-        workExperience: [] // Not collected in this form
+        profession: {
+          company: data.company,
+          position: data.profession, // Backend expects 'position', frontend has 'profession'
+        }
       }
 
       const response = await ProfileService.updateProfileStep3(profileData)
       
       if (response.success) {
+        console.log('Step-3 success, showing toast and updating localStorage...')
+        // Show success toast
+        toast.success('Education and career information saved successfully!')
+        
+        // Update user data in localStorage with new completion percentage
+        const currentUser = getUserData()
+        if (currentUser) {
+          const updatedUser = {
+            ...currentUser,
+            onboardingCompletion: 60, // Step 3 completion = 60%
+            hasProfile: true
+          }
+          const token = localStorage.getItem('authToken') || ''
+          storeUserData(updatedUser, token)
+          console.log('Updated user data in localStorage with completion: 60%')
+        }
+        
         // Navigate to next step on success
         router.push('/onboarding/religious-view')
       } else {
-        setError(response.error?.message || 'Failed to save education and career information')
+        const errorMessage = response.error?.details?.join(', ') || response.error?.message || 'Failed to save education and career information'
+        setError(errorMessage)
+        toast.error(errorMessage)
       }
     } catch (err) {
       console.error('Error saving education/career data:', err)
-      setError('An unexpected error occurred. Please try again.')
+      const errorMessage = 'An unexpected error occurred. Please try again.'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }

@@ -1,8 +1,10 @@
 import React from 'react'
+import AuthGuard from '@/components/auth/authguard'
 //
 export default function page() {
   return (
-    <div className="min-h-screen max-h-screen w-full grid grid-cols-1 md:grid-cols-2 ">
+    <AuthGuard>
+      <div className="min-h-screen max-h-screen w-full grid grid-cols-1 md:grid-cols-2 ">
       <div className="col-span-1 hidden md:block bg-emerald-100 h-full ">
         {/* <img
                className="w-full h-full object-cover"
@@ -15,6 +17,7 @@ export default function page() {
       <div className="col-span-1 h-full w-full p-4">
         {/* <LifeStyle /> */}
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

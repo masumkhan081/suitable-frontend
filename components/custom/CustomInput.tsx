@@ -21,13 +21,13 @@ const styMap = {
     parent: "",
     label: "flex flex-col gap-[3px] w-full",
     input:
-      "rounded-md bg-gray-100 border border-gray-300 outline-none focus:border-gray-400 hover:border-gray-500 p-[5px] space-x-2",
+      "rounded-md  border border-gray-300 outline-none focus:border-gray-400 hover:border-gray-500 p-[5px] space-x-2",
   },
   authForm: {
     parent: "flex flex-col gap-[3px] w-full",
-    label: "font-semibold text-gray-600",
+    label: "font-medium text-gray-500",
     input:
-      "flex-grow outline-none !rounded-md focus:border-gray-400 hover:border-gray-500 p-[10px] space-x-2",
+      "flex-grow text-gray-800 outline-none !rounded-md focus:border-gray-400 hover:border-gray-500 px-[10px] py-[8px] space-x-2",
   },
 };
 
@@ -52,7 +52,7 @@ export default function CustomInput({
   return (
     <div className={styMap[styleKey]?.parent}>
       {label && <label className={styMap[styleKey]?.label}>{label}</label>}
-      <div className="flex w-full bg-gray-100 rounded-md border border-gray-300">
+      <div className="flex w-full rounded-md border focus:border-gray-400 hover:border-gray-400  hover:bg-gray-50 border-gray-200">
         <input
           id={id}
           name={name}

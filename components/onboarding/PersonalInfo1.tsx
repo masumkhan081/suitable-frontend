@@ -8,6 +8,8 @@ import CustomSelect2 from '../custom/CustomSelect2'
 import { ArrowRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ProfileService } from '@/services/profileService'
+import { toast } from 'sonner'
+import { getUserData, storeUserData } from '@/utils/auth'
 
 const MARITAL_STATUSES = [
   'Single',
@@ -85,11 +87,18 @@ export default function PersonalInfo1() {
     setError(null)
     
     try {
+      // Convert height from feet/inches to centimeters
+      const heightParts = data.height.split(' ')
+      const feet = parseInt(heightParts[0])
+      const inches = parseInt(heightParts[2])
+      const totalInches = feet * 12 + inches
+      const heightInCm = Math.round(totalInches * 2.54) // Convert inches to centimeters
+      
       // Convert form data to match backend expectations
       const profileData = {
         dob: data.dob,
         gender: data.gender as 'male' | 'female',
-        height: parseInt(data.height.split(' ')[0]) * 12 + parseInt(data.height.split(' ')[2]), // Convert to inches
+        height: heightInCm, // Height in centimeters
         maritalStatus: data.maritalStatus,
         numberOfChildren: parseInt(data.numberOfChildren === '10+' ? '10' : data.numberOfChildren),
         numberOfSiblings: parseInt(data.numberOfSiblings === '10+' ? '10' : data.numberOfSiblings),
@@ -98,15 +107,48 @@ export default function PersonalInfo1() {
 
       const response = await ProfileService.updateProfileStep1(profileData)
       
+      // Debug: Log the full response
+      console.log('API Response:', response)
+      console.log('Response success:', response.success)
+      
       if (response.success) {
-        // Navigate to next step on success
-        router.push('/onboarding/personal-info/step-2')
+        console.log('Success condition met, showing toast and navigating...')
+        // Show success toast
+        toast.success('Personal information saved successfully!')
+        
+        // Update user data in localStorage with new completion percentage
+        const currentUser = getUserData()
+        if (currentUser) {
+          const updatedUser = {
+            ...currentUser,
+            onboardingCompletion: 20, // Step 1 completion = 20%
+            hasProfile: true
+          }
+          const token = localStorage.getItem('authToken') || ''
+          storeUserData(updatedUser, token)
+          console.log('Updated user data in localStorage with completion: 20%')
+        }
+        
+        // Try immediate navigation first
+        console.log('Attempting immediate navigation to step-2...')
+        try {
+          router.push('/onboarding/personal-info/step-2')
+        } catch (navError) {
+          console.error('Router navigation failed:', navError)
+          // Fallback to window.location
+          window.location.href = '/onboarding/personal-info/step-2'
+        }
       } else {
-        setError(response.error?.message || 'Failed to save profile data')
+        console.log('Success condition NOT met, showing error...')
+        const errorMessage = response.error?.message || 'Failed to save profile data'
+        setError(errorMessage)
+        toast.error(errorMessage)
       }
     } catch (err) {
       console.error('Error saving profile data:', err)
-      setError('An unexpected error occurred. Please try again.')
+      const errorMessage = 'An unexpected error occurred. Please try again.'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }

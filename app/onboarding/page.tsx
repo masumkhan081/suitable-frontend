@@ -1,10 +1,12 @@
 'use client'
 import React from 'react'
 import Link from 'next/link'
+import AuthGuard from '@/components/auth/authguard'
 
 export default function OnboardingWelcome() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
+    <AuthGuard>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 relative overflow-hidden">
       {/* Background overlay */}
       <div className="absolute inset-0 bg-black/20"></div>
 
@@ -61,6 +63,7 @@ export default function OnboardingWelcome() {
       <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
       <div className="absolute bottom-10 right-10 w-32 h-32 bg-purple-400/20 rounded-full blur-2xl"></div>
       <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-pink-400/20 rounded-full blur-xl"></div>
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

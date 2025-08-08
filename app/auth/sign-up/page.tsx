@@ -14,13 +14,13 @@ export default function page() {
         {/* {JSON.stringify(errors)} */}
       </div>
 
-      <div className="col-span-1 h-full  flex flex-col gap-6 justify-center items-center p-4">
+      <div className="col-span-1 h-full  flex flex-col gap-7 justify-center items-center p-4">
         <div className="w-full flex gap-2 items-center justify-center px-4 ">
           <Shell className="w-6 h-6" />
           <EnhanceText txt="Suitable" styleKey="appTitle" />
         </div>
 
-        <div className="md:min-w-[500px] min-w-[360px] w-auto flex flex-col gap-4">
+        <div className="md:min-w-[500px] min-w-[360px] w-auto flex flex-col gap-6">
           <EnhanceText txt="Create New Account" styleKey="formTitle" />
           <SignUp />
         </div>

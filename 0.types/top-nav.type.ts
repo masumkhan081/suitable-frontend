@@ -11,35 +11,34 @@ export type TopNavEntry = {
   btnIcon?: React.ReactNode
 }
 
-export type TenantPageKeys =
+// Page keys for USER role
+export type UserPageKeys =
+  | 'home'
   | 'profile'
-  | 'dashboard'
-  | 'candidatures'
-  | 'dossier-management'
-  | 'offers'
-  | 'settings'
-  | 'support'
-  | 'payments'
+  | 'matching'
+  | 'onboarding'
+  | 'subscription-plans'
 
-export type LandlordPageKeys =
-  | 'profile'
+// Page keys for ADMIN role
+export type AdminPageKeys =
   | 'dashboard'
-  | 'candidatures'
-  | 'dossier-management'
-  | 'offers'
-  | 'tenants'
-  | 'properties'
   | 'users'
+  | 'documents'
   | 'settings'
-  | 'payments'
-  | 'candidature-details'
-  | 'tenant-details'
-  | 'manage-dossier'
 
-export type UserRoles = 'tenant' | 'landlord' | 'agency'
+// Combined page keys for all roles
+export type AppPageKeys = UserPageKeys | AdminPageKeys
 
+// Role-based navigation structure
+export type UserRole = 'USER' | 'ADMIN'
+
+export type RoleBasedPages = {
+  USER: UserPageKeys[]
+  ADMIN: AdminPageKeys[]
+}
+
+// Navigation map for role-based pages
 export type TopNavMap = {
-  tenant: Record<TenantPageKeys, TopNavEntry>
-  landlord: Record<LandlordPageKeys, TopNavEntry>
-  agency: Record<LandlordPageKeys, TopNavEntry>
+  USER: Record<UserPageKeys, TopNavEntry>
+  ADMIN: Record<AdminPageKeys, TopNavEntry>
 }

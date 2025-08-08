@@ -14,6 +14,7 @@ export default function SignUp() {
   const router = useRouter()
 
   // states
+   
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -97,7 +98,7 @@ export default function SignUp() {
   }
 
   return (
-    <form className=" w-full flex flex-col gap-6">
+    <form className=" w-full flex flex-col gap-4">
       <CustomInput
         styleKey="authForm"
         label="User Name"
@@ -143,7 +144,7 @@ export default function SignUp() {
         value={termsAccepted ? 'accepted' : ''}
         onChange={(e) => setTermsAccepted(e.target.checked)}
       >
-        <span>
+        <span className='text-gray-500'>
           I agree to the <CustomLink href="/terms" txt="terms" /> and{' '}
           <CustomLink href="/privacy" txt="privacy" /> policy
         </span>

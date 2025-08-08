@@ -8,6 +8,8 @@ import CustomSelect2 from '../custom/CustomSelect2'
 import { ArrowRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ProfileService } from '@/services/profileService'
+import { toast } from 'sonner'
+import { getUserData, storeUserData } from '@/utils/auth'
 
 type SelectOption = {
   value: string
@@ -59,7 +61,7 @@ export default function PersonalInfo2() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   const {
     control,
     handleSubmit,
@@ -84,7 +86,7 @@ export default function PersonalInfo2() {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
       // Convert form data to match backend expectations
       const profileData = {
@@ -106,16 +108,37 @@ export default function PersonalInfo2() {
       }
 
       const response = await ProfileService.updateProfileStep2(profileData)
-      
+
       if (response.success) {
+        console.log('Step-2 success, showing toast and updating localStorage...')
+        // Show success toast
+        toast.success('Address information saved successfully!')
+
+        // Update user data in localStorage with new completion percentage
+        const currentUser = getUserData()
+        if (currentUser) {
+          const updatedUser = {
+            ...currentUser,
+            onboardingCompletion: 40, // Step 2 completion = 40%
+            hasProfile: true
+          }
+          const token = localStorage.getItem('authToken') || ''
+          storeUserData(updatedUser, token)
+          console.log('Updated user data in localStorage with completion: 40%')
+        }
+
         // Navigate to next step on success
         router.push('/onboarding/education-and-career/step-1')
       } else {
-        setError(response.error?.message || 'Failed to save address information')
+        const errorMessage = response.error?.details?.join(', ') || response.error?.message || 'Failed to save address information'
+        setError(errorMessage)
+        toast.error(errorMessage)
       }
     } catch (err) {
       console.error('Error saving address data:', err)
-      setError('An unexpected error occurred. Please try again.')
+      const errorMessage = 'An unexpected error occurred. Please try again.'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -146,7 +169,7 @@ export default function PersonalInfo2() {
         {/* Current Address Section */}
         <div className="w-full space-y-4">
           <h3 className="text-gray-700 font-medium">Current Address</h3>
-          
+
           {/* Country */}
           <div className="w-full flex flex-col gap-1">
             <label htmlFor="currentAddress.country" className="text-gray-700">
@@ -168,7 +191,7 @@ export default function PersonalInfo2() {
               <p className="text-red-500 text-sm">{errors.currentAddress.country.message}</p>
             )}
           </div>
-          
+
           {/* City and Area */}
           <div className="w-full flex flex-col md:flex-row gap-4">
             <div className="w-full flex flex-col gap-1">
@@ -191,7 +214,7 @@ export default function PersonalInfo2() {
                 <p className="text-red-500 text-sm">{errors.currentAddress.city.message}</p>
               )}
             </div>
-            
+
             <div className="w-full flex flex-col gap-1">
               <label htmlFor="currentAddress.area" className="text-gray-700">
                 Area
@@ -203,9 +226,8 @@ export default function PersonalInfo2() {
                   <input
                     {...field}
                     type="text"
-                    className={`w-full border ${
-                      errors.currentAddress?.area ? 'border-red-500' : 'border-gray-300'
-                    } rounded-md p-2`}
+                    className={`w-full border ${errors.currentAddress?.area ? 'border-red-500' : 'border-gray-300'
+                      } rounded-md p-2`}
                     placeholder="Enter area"
                   />
                 )}
@@ -223,7 +245,7 @@ export default function PersonalInfo2() {
         {/* Back Home Address Section */}
         <div className="w-full space-y-4">
           <h3 className="text-gray-700 font-medium">Back Home Address</h3>
-          
+
           {/* Home Country */}
           <div className="w-full flex flex-col gap-1">
             <label htmlFor="homeAddress.country" className="text-gray-700">
@@ -245,7 +267,7 @@ export default function PersonalInfo2() {
               <p className="text-red-500 text-sm">{errors.homeAddress.country.message}</p>
             )}
           </div>
-          
+
           {/* Home City and Area */}
           <div className="w-full flex flex-col md:flex-row gap-4">
             <div className="w-full flex flex-col gap-1">
@@ -268,7 +290,7 @@ export default function PersonalInfo2() {
                 <p className="text-red-500 text-sm">{errors.homeAddress.city.message}</p>
               )}
             </div>
-            
+
             <div className="w-full flex flex-col gap-1">
               <label htmlFor="homeAddress.area" className="text-gray-700">
                 Area
@@ -280,9 +302,8 @@ export default function PersonalInfo2() {
                   <input
                     {...field}
                     type="text"
-                    className={`w-full border ${
-                      errors.homeAddress?.area ? 'border-red-500' : 'border-gray-300'
-                    } rounded-md p-2`}
+                    className={`w-full border ${errors.homeAddress?.area ? 'border-red-500' : 'border-gray-300'
+                      } rounded-md p-2`}
                     placeholder="Enter home area"
                   />
                 )}
@@ -292,7 +313,7 @@ export default function PersonalInfo2() {
               )}
             </div>
           </div>
-          
+
           {/* Willing to Relocate */}
           <div className="w-full flex flex-col gap-1">
             <label htmlFor="willingToRelocate" className="text-gray-700">
