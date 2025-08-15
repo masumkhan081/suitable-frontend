@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { Toaster } from 'sonner'
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body className="h-full min-w-screen min-h-screen transition-colors duration-200">
         <ThemeProvider>
           {children}
+          <Toaster richColors />
         </ThemeProvider>
       </body>
     </html>

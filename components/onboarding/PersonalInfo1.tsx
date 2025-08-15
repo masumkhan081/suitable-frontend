@@ -53,8 +53,8 @@ const schema = z.object({
 export default function PersonalInfo1() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  
+  // Error handling is done via toast notifications
+
   const heightOptions = Array.from({ length: 100 }, (_, i) => {
     const feet = Math.floor(i / 12) + 4
     const inches = i % 12
@@ -66,7 +66,8 @@ export default function PersonalInfo1() {
     handleSubmit,
     formState: { errors },
     setValue,
-    watch
+    watch,
+    reset
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -84,8 +85,7 @@ export default function PersonalInfo1() {
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
-    setError(null)
-    
+
     try {
       // Convert height from feet/inches to centimeters
       const heightParts = data.height.split(' ')
@@ -93,7 +93,7 @@ export default function PersonalInfo1() {
       const inches = parseInt(heightParts[2])
       const totalInches = feet * 12 + inches
       const heightInCm = Math.round(totalInches * 2.54) // Convert inches to centimeters
-      
+
       // Convert form data to match backend expectations
       const profileData = {
         dob: data.dob,
@@ -106,16 +106,16 @@ export default function PersonalInfo1() {
       }
 
       const response = await ProfileService.updateProfileStep1(profileData)
-      
+
       // Debug: Log the full response
       console.log('API Response:', response)
       console.log('Response success:', response.success)
-      
+
       if (response.success) {
         console.log('Success condition met, showing toast and navigating...')
         // Show success toast
         toast.success('Personal information saved successfully!')
-        
+
         // Update user data in localStorage with new completion percentage
         const currentUser = getUserData()
         if (currentUser) {
@@ -128,7 +128,10 @@ export default function PersonalInfo1() {
           storeUserData(updatedUser, token)
           console.log('Updated user data in localStorage with completion: 20%')
         }
-        
+
+        // Clear the form before navigation
+        reset()
+
         // Try immediate navigation first
         console.log('Attempting immediate navigation to step-2...')
         try {
@@ -141,13 +144,11 @@ export default function PersonalInfo1() {
       } else {
         console.log('Success condition NOT met, showing error...')
         const errorMessage = response.error?.message || 'Failed to save profile data'
-        setError(errorMessage)
-        toast.error(errorMessage)
+        toast.error(errorMessage || 'Failed to save profile data. Please try again.')
       }
     } catch (err) {
       console.error('Error saving profile data:', err)
-      const errorMessage = 'An unexpected error occurred. Please try again.'
-      setError(errorMessage)
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.'
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)
@@ -157,22 +158,18 @@ export default function PersonalInfo1() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-white w-full h-full flex flex-col gap-6 justify-center items-center md:p-8 sm:p-6 p-3"
+      className="bg-white w-full h-full flex flex-col gap-6 justify-center items-center p-8"
       noValidate
     >
-      <div className="w-full flex flex-col gap-2 items-start justify-start">
-        <div className="w-full flex justify-between items-center">
-          <span className="font-semibold">Your Personal Information</span>
-          <span className="text-blue-700">20%</span>
-        </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full">
-          <div className="h-2 w-[20%] bg-blue-500 rounded-full"></div>
-        </div>
-        {error && (
-          <div className="w-full p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-600 text-sm">{error}</p>
+      <div className="w-full flex items-center justify-between gap-4 mb-2">
+        <h2 className="text-xl font-bold text-gray-800 whitespace-nowrap">Your Personal Information</h2>
+        <div className="flex items-center gap-4 flex-1 max-w-md">
+          <div className="flex-1 h-2 bg-gray-200 rounded-full">
+            <div className="h-2 w-[20%] bg-blue-500 rounded-full"></div>
           </div>
-        )}
+          <span className="text-blue-700 font-medium w-12 text-right">20%</span>
+        </div>
+
       </div>
 
       <div className="w-full flex flex-col gap-4">

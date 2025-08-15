@@ -213,4 +213,8 @@ export class ProfileService {
     return response.json();
   }
 
+  static async completeProfileStep5(data: any): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>('/api/profile/onboarding/step-5', data);
+  }
+
 }

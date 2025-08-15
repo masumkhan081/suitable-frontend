@@ -3,6 +3,8 @@
 This is a [Next.js](https://nextjs.org) project for the Suitable Islamic dating platform.
 
 
+# lsof -ti:3000,3001,3002 | xargs kill -9
+
 ## API Integration Status
 
 ### Summary: APIs to Build & Test First

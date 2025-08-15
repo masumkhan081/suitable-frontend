@@ -5,35 +5,46 @@ import { useState } from 'react'
 import AddPhoto from '@/components/onboarding/AddPhoto'
 import { ProfileService } from '@/services/profileService'
 import AuthGuard from '@/components/auth/authguard'
+import { getUserData, storeUserData } from '@/utils/auth'
+import { toast } from 'react-hot-toast'
 
 export default function AddPhotoPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
 
   const handleUploadPhoto = async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      // For now, we'll complete the profile without actual photo upload
-      // In a real implementation, you'd handle file upload here
-      const profileData = {
-        hasPhoto: true,
-        photoUrl: '', // Would be set after actual upload
-        profileCompleted: true
+      if (!selectedImage) {
+        setError('Please select an image to upload')
+        return
       }
 
-      const response = await ProfileService.updateProfileStep5(profileData)
+      // Create FormData with the selected image
+      const formData = new FormData()
+      formData.append('profileImage', selectedImage)
+
+      const response = await ProfileService.updateProfileStep5(formData)
 
       if (response.success) {
-        // Navigate to subscription plans on success (100% completion)
-        router.push('/onboarding/subscription-plans')
+        // Update local storage with completion percentage
+        const userData = getUserData()
+        if (userData) {
+          userData.onboardingCompletion = 100
+          storeUserData(userData, localStorage.getItem('authToken') || '')
+        }
+        
+        // Navigate to home on success (100% completion)
+        router.push('/home')
       } else {
-        setError(response.error?.message || 'Failed to complete profile')
+        setError(response.error?.message || 'Failed to upload photo')
       }
     } catch (err) {
-      console.error('Error completing profile:', err)
+      console.error('Error uploading photo:', err)
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
@@ -46,23 +57,21 @@ export default function AddPhotoPage() {
 
     try {
       // Complete profile without photo
-      const profileData = {
+      await ProfileService.completeProfileStep5({
         hasPhoto: false,
         photoUrl: '',
         profileCompleted: true
-      }
+      })
 
-      const response = await ProfileService.updateProfileStep5(profileData)
+      // Update localStorage with 100% completion
+      localStorage.setItem('onboardingCompletion', '100')
 
-      if (response.success) {
-        // Navigate to subscription plans on success (100% completion)
-        router.push('/onboarding/subscription-plans')
-      } else {
-        setError(response.error?.message || 'Failed to complete profile')
-      }
-    } catch (err) {
-      console.error('Error completing profile:', err)
-      setError('An unexpected error occurred. Please try again.')
+      toast.success('Profile completed successfully!')
+      router.push('/profile')
+    } catch (error) {
+      console.error('Skip error:', error)
+      setError('Failed to complete profile. Please try again.')
+      toast.error('Failed to complete profile. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -88,17 +97,18 @@ export default function AddPhotoPage() {
         <div className="col-span-1 h-full flex flex-col gap-6 justify-center items-center p-4 bg-white dark:bg-gray-800">
           <div className="w-full max-w-md p-6">
             <div className="flex flex-col items-center justify-center gap-4">
-              <div className="flex flex-col gap-1 text-center">
-                <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">Add Your Photo</h2>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Upload a photo to make your profile visible to others
-                </p>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-blue-700">100%</span>
+              {/* Header with title, percentage, and progress in one row */}
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">Add Your Photo</h2>
+                  <span className="text-blue-700 font-medium">100%</span>
                 </div>
-                <div className="w-full h-2 bg-gray-200 rounded-full">
+                <div className="w-full h-2 bg-gray-200 rounded-full mb-2">
                   <div className="h-2 w-[100%] bg-blue-500 rounded-full"></div>
                 </div>
+                <p className="text-gray-600 dark:text-gray-300 text-center">
+                  Upload a photo to make your profile visible to others
+                </p>
                 {error && (
                   <div className="w-full p-3 bg-red-50 border border-red-200 rounded-md mt-2">
                     <p className="text-red-600 text-sm">{error}</p>
@@ -106,7 +116,10 @@ export default function AddPhotoPage() {
                 )}
               </div>
 
-              <AddPhoto />
+              <AddPhoto 
+                selectedImage={selectedImage}
+                onImageSelect={setSelectedImage}
+              />
 
               <div className="w-full mt-6 flex flex-col gap-3">
                 <button

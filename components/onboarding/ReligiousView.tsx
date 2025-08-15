@@ -113,7 +113,7 @@ export default function ReligiousView() {
       canReadQuran: "Yes" as "Yes" | "No" | "Occasionally",
       eatsHalal: "Yes" as "Yes" | "No" | "Occasionally",
       drinksAlcohol: "No" as "Yes" | "No" | "Occasionally",
-      aboutYou: ''
+      aboutYou: 'I am in individual'
     }
   })
 
@@ -141,6 +141,7 @@ export default function ReligiousView() {
       console.log('Mapped data for backend:', profileData)
 
       const response = await ProfileService.updateProfileStep4(profileData)
+      console.log('API Response:', response)
       
       if (response.success) {
         console.log('Step-4 success, showing toast and updating localStorage...')
@@ -161,9 +162,12 @@ export default function ReligiousView() {
         }
         
         // Navigate to next step on success
-        router.push('/onboarding/add-photo')
+        setTimeout(() => {
+          router.push('/onboarding/add-photo')
+        }, 500) // Add a small delay before navigation
       } else {
-        const errorMessage = response.error?.details?.join(', ') || response.error?.message || 'Failed to save religious information'
+        const errorMessage = response.error?.message || 'Failed to save religious information'
+        console.error('API Error:', response.error)
         setError(errorMessage)
         toast.error(errorMessage)
       }

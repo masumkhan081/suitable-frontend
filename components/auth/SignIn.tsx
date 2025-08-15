@@ -146,9 +146,9 @@ export default function SignIn() {
         disabled={isLoading}
       />
 
-      <p className="flex gap-2 items-center justify-center">
+      <div className="flex gap-2 items-center justify-center">
         <p className="text-sm text-gray-600">Don&apos;t have an account? <a href="/auth/sign-up" className="text-blue-600 hover:underline">Sign up</a></p>
-      </p>
+      </div>
     </form>
   )
 }

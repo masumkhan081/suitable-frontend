@@ -7,9 +7,14 @@ import { ProfileService } from '@/services/profileService'
 import { getUserData, storeUserData } from '@/utils/auth'
 import { Camera, Upload, X, Check } from 'lucide-react'
 
-type Props = Record<string, unknown>
+type Props = {
+  onUpload?: (file: File) => void
+  onSkip?: () => void
+  selectedImage?: File | null
+  onImageSelect?: (file: File | null) => void
+}
 
-export default function AddPhoto({}: Props) {
+export default function AddPhoto({ onUpload, onSkip, selectedImage: externalSelectedImage, onImageSelect }: Props) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -38,6 +43,7 @@ export default function AddPhoto({}: Props) {
 
     setError(null)
     setSelectedImage(file)
+    onImageSelect?.(file) // Notify parent
 
     // Create preview URL
     const reader = new FileReader()
@@ -66,6 +72,7 @@ export default function AddPhoto({}: Props) {
     setSelectedImage(null)
     setPreviewUrl(null)
     setError(null)
+    onImageSelect?.(null) // Notify parent
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -78,21 +85,21 @@ export default function AddPhoto({}: Props) {
 
     try {
       console.log('Uploading image:', file.name)
-      
+
       // Create FormData
       const formData = new FormData()
       formData.append('profileImage', file)
-      
+
       console.log('FormData created with image')
-      
+
       // Upload image
       const response = await ProfileService.updateProfileStep5(formData)
-      
+
       console.log('Upload response:', response)
-      
+
       if (response.success) {
         toast.success('Profile image uploaded successfully!')
-        
+
         // Update user data in localStorage with 100% completion
         const currentUser = getUserData()
         if (currentUser) {
@@ -105,7 +112,7 @@ export default function AddPhoto({}: Props) {
           storeUserData(updatedUser, token)
           console.log('Updated user data in localStorage with completion: 100%')
         }
-        
+
         // Navigate to profile after success
         setTimeout(() => {
           router.push('/profile')
@@ -115,17 +122,17 @@ export default function AddPhoto({}: Props) {
       }
     } catch (error: any) {
       console.error('Upload error:', error)
-      
+
       let errorMessage = 'Failed to upload image'
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message
       } else if (error.message) {
         errorMessage = error.message
       }
-      
+
       setError(errorMessage)
       toast.error(errorMessage)
-      
+
       // Reset selection on error so user can try again
       setSelectedImage(null)
       setPreviewUrl(null)
@@ -145,41 +152,48 @@ export default function AddPhoto({}: Props) {
         <p className="text-gray-600">Upload a profile picture to complete your profile</p>
       </div>
 
-      {/* Image Upload Area */}
+      {/* Photo Preview/Upload Area */}
       <div className="relative">
         {previewUrl ? (
-          // Image Preview
-          <div className="relative w-48 h-48 mx-auto">
-            <img
-              src={previewUrl}
-              alt="Profile preview"
-              className="w-full h-full rounded-full object-cover border-4 border-gray-200"
-            />
-            {/* Remove button */}
-            <button
-              onClick={handleRemoveImage}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-              disabled={isLoading}
-            >
-              <X size={16} />
-            </button>
-            {/* Replace button */}
-            <button
-              onClick={handleSelectClick}
-              className="absolute bottom-2 right-2 bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition-colors"
-              disabled={isLoading}
-            >
-              <Camera size={16} />
-            </button>
+          // Preview with icons below
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative w-48 h-48">
+              <img
+                src={previewUrl}
+                alt="Selected profile"
+                className="w-full h-full object-cover rounded-full border-4 border-white shadow-lg"
+              />
+            </div>
+            {/* Action buttons below image */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleSelectClick}
+                className="bg-blue-500 text-white rounded-full p-2.5 hover:bg-blue-600 transition-colors shadow-lg"
+                disabled={isLoading}
+                title="Change photo"
+              >
+                <Camera size={18} />
+              </button>
+              <button
+                onClick={handleRemoveImage}
+                className="bg-red-500 text-white rounded-full p-2.5 hover:bg-red-600 transition-colors shadow-lg"
+                disabled={isLoading}
+                title="Remove photo"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
         ) : (
-          // Upload Area
+          // Upload Area with camera icon
           <div
             onClick={handleSelectClick}
-            className="w-48 h-48 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-gray-400 transition-colors mx-auto"
+            className="w-48 h-48 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-gray-400 transition-colors mx-auto group"
           >
-            <Upload className="text-gray-400 mb-2" size={32} />
-            <span className="text-gray-500 text-sm font-medium">Click to add photo</span>
+            <div className="bg-gray-200 rounded-full p-4 mb-3 group-hover:bg-gray-300 transition-colors">
+              <Camera className="text-gray-500" size={32} />
+            </div>
+            <span className="text-gray-600 text-sm font-medium">Add your photo</span>
             <span className="text-gray-400 text-xs mt-1">JPEG, PNG, WebP (Max 5MB)</span>
           </div>
         )}
@@ -217,51 +231,7 @@ export default function AddPhoto({}: Props) {
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-3">
-        {isLoading ? (
-          <div className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2">
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            Uploading...
-          </div>
-        ) : selectedImage ? (
-          <>
-            <button
-              onClick={handleSelectClick}
-              className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
-            >
-              <Camera size={16} />
-              Change
-            </button>
-            <button
-              onClick={handleUploadClick}
-              className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <Upload size={16} />
-              Upload
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={handleSelectClick}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <Camera size={16} />
-            Choose Photo
-          </button>
-        )}
-      </div>
 
-      {/* Skip Option */}
-      <div className="text-center">
-        <button
-          onClick={() => router.push('/profile')}
-          disabled={isLoading}
-          className="text-gray-500 text-sm hover:text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Skip for now
-        </button>
-      </div>
     </div>
   )
 }
