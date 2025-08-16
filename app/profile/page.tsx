@@ -2,7 +2,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { User, Settings, Heart, Shield, HelpCircle, MessageCircle, Edit2, Save, X, Eye } from 'lucide-react'
+import { User, Settings, Heart, Shield, HelpCircle, MessageCircle, Edit2, Save, X, Eye, CheckCircle, Mail, MessageSquare, Sparkles, Users } from 'lucide-react'
 import { ProfileService } from '@/services/profileService'
 import { toast } from 'sonner'
 import PersonalDetailsSection from '@/components/profile/PersonalDetailsSection'
@@ -10,6 +10,9 @@ import LocationBackgroundSection from '@/components/profile/LocationBackgroundSe
 import EducationCareerSection from '@/components/profile/EducationCareerSection'
 import ReligiousLifestyleSection from '@/components/profile/ReligiousLifestyleSection'
 import PhotoSection from '@/components/profile/PhotoSection'
+import VerificationContent from '@/components/profile/VerificationContent'
+import FAQAccordion from '@/components/profile/FAQContent'
+import TopNav from '@/components/TopNav'
 
 interface Profile {
   _id: string
@@ -43,15 +46,49 @@ interface Profile {
 }
 
 export default function UserProfile() {
-  const [activeTab, setActiveTab] = useState('profile')
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    // Try to get saved tab from localStorage if in browser environment
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('last-active-profile-tab')
+      return savedTab || 'profile'
+    }
+    return 'profile'
+  })
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('last-active-profile-tab', activeTab)
+    }
+  }, [activeTab])
   const [error, setError] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  
+  // Navigation items for TopNav - same as matching pages
+  const navigationItems = [
+    {
+      label: 'Matches',
+      href: '/matching/matches',
+      icon: Heart,
+    },
+    {
+      label: 'Interests',
+      href: '/matching/interests',
+      icon: Sparkles,
+    },
+    {
+      label: 'Mutual Matches',
+      href: '/matching/mutual-matches',
+      icon: Users,
+    }
+  ]
 
   const sidebarItems = [
     { id: 'profile', label: 'My Profile', icon: User },
+    { id: 'verification', label: 'Verification', icon: CheckCircle },
     { id: 'preference', label: 'Filter & Preferences', icon: Heart },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'privacy', label: 'Data Privacy', icon: Shield },
@@ -165,6 +202,11 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <TopNav 
+        userRole="user" 
+        userName="Sorwar" 
+        customNavItems={navigationItems}
+      />
       <div className="flex">
         {/* Sidebar */}
         <div className="w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 min-h-screen">
@@ -213,11 +255,12 @@ export default function UserProfile() {
               completionPercentage={calculateCompletionPercentage(profile)}
             />
           )}
+          {activeTab === 'verification' && <VerificationContent />}
           {activeTab === 'preference' && <PreferenceContent />}
           {activeTab === 'settings' && <SettingsContent />}
           {activeTab === 'privacy' && <PrivacyContent />}
           {activeTab === 'support' && <SupportContent />}
-          {activeTab === 'faq' && <FAQContent />}
+          {activeTab === 'faq' && <FAQAccordion />}
         </div>
       </div>
     </div>
@@ -774,22 +817,138 @@ function PrivacyContent() {
 
 function SupportContent() {
   return (
-    <div className="p-8">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Contact Support</h3>
-        <p className="text-gray-600 dark:text-gray-400">Support information coming soon...</p>
+    <div className="p-8 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <MessageCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">We're Here to Help</h2>
+        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          Our dedicated support team is available to assist you with any questions or concerns you may have.
+        </p>
+      </div>
+
+      {/* Contact Options */}
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {/* Email Support */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">Email Support</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Send us an email and we'll get back to you within 24 hours.
+              </p>
+              <a 
+                href="mailto:support@suitable.com" 
+                className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
+              >
+                support@suitable.com
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Chat */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+          <div className="flex items-start gap-4">
+            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+              <MessageSquare className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">Live Chat</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Chat with our support team in real-time during business hours.
+              </p>
+              <button 
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              >
+                Start Chat
+              </button>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Available: Mon-Fri, 9AM-6PM EST
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Common Issues */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Common Issues</h3>
+        <div className="space-y-4">
+          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+            <h4 className="font-medium text-gray-800 dark:text-white mb-2">Identity Verification Issues</h4>
+            <p className="text-gray-600 dark:text-gray-400">Having trouble with document verification? Make sure your photos are clear and all document details are visible.</p>
+          </div>
+          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+            <h4 className="font-medium text-gray-800 dark:text-white mb-2">Account Access Problems</h4>
+            <p className="text-gray-600 dark:text-gray-400">If you're having trouble logging in, try resetting your password or check if your account has been verified.</p>
+          </div>
+          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+            <h4 className="font-medium text-gray-800 dark:text-white mb-2">Matching Algorithm Questions</h4>
+            <p className="text-gray-600 dark:text-gray-400">To improve your matches, make sure your profile is complete and your preferences are up to date.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Form */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800/50">
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Send Us a Message</h3>
+        <form className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Name</label>
+              <input 
+                type="text" 
+                id="name" 
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+                placeholder="John Doe"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+              <input 
+                type="email" 
+                id="email" 
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+                placeholder="your@email.com"
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
+            <input 
+              type="text" 
+              id="subject" 
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+              placeholder="How can we help you?"
+            />
+          </div>
+          <div>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+            <textarea 
+              id="message" 
+              rows={4} 
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+              placeholder="Please describe your issue in detail..."
+            ></textarea>
+          </div>
+          <div>
+            <button 
+              type="submit" 
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all transform hover:scale-105 shadow-md"
+            >
+              Submit Request
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
 }
 
-function FAQContent() {
-  return (
-    <div className="p-8">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">FAQ</h3>
-        <p className="text-gray-600 dark:text-gray-400">FAQ coming soon...</p>
-      </div>
-    </div>
-  )
-}
+// Local placeholder component removed - now using imported FAQAccordion component

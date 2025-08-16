@@ -1,7 +1,14 @@
 'use client'
 import React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Sun, Moon, Bell, MessageCircle, User } from 'lucide-react'
+
+interface NavItem {
+  label: string
+  href: string
+  icon?: any
+}
 
 interface TopNavProps {
   userRole?: 'user' | 'admin' | 'guest'
@@ -10,6 +17,7 @@ interface TopNavProps {
   showMessages?: boolean
   onThemeToggle?: () => void
   isDarkMode?: boolean
+  customNavItems?: NavItem[]
 }
 
 export default function TopNav({ 
@@ -18,10 +26,12 @@ export default function TopNav({
   showNotifications = true,
   showMessages = true,
   onThemeToggle,
-  isDarkMode = false
+  isDarkMode = false,
+  customNavItems
 }: TopNavProps) {
+  const router = useRouter()
   
-  const getNavItems = () => {
+  const getNavItems = (): NavItem[] => {
     switch (userRole) {
       case 'admin':
         return [
@@ -31,9 +41,9 @@ export default function TopNav({
         ]
       case 'user':
         return [
-          { label: 'Matches', href: '/matches' },
-          { label: 'Mutual Matches', href: '/mutual-matches' },
-          { label: 'Interests', href: '/interests' }
+          { label: 'Matching', href: '/matching/matches' },
+          { label: 'Profile', href: '/profile' },
+          { label: 'Settings', href: '/settings' }
         ]
       case 'guest':
         return [
@@ -60,15 +70,20 @@ export default function TopNav({
           
           {/* Navigation Items */}
           <div className="hidden md:flex items-center space-x-6">
-            {getNavItems().map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {/* Always use the current component's navItems, not persisted state */}
+            {(customNavItems ? [...customNavItems] : getNavItems()).map((item) => {
+              const Icon = item.icon
+              return (
+                <button
+                  key={item.href}
+                  onClick={() => router.push(item.href)}
+                  className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
+                >
+                  {Icon && <Icon className="w-4 h-4" />}
+                  <span>{item.label}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -103,9 +118,12 @@ export default function TopNav({
           {/* User Menu */}
           {userRole !== 'guest' ? (
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+              <Link 
+                href="/profile"
+                className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors cursor-pointer"
+              >
                 <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-              </div>
+              </Link>
               <span className="text-sm text-gray-700 dark:text-gray-300">{userName}</span>
             </div>
           ) : (

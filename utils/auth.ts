@@ -36,9 +36,9 @@ export function getPostLoginRedirection(user: User): RedirectionResult {
       };
     }
 
-    // Profile is complete, go to user dashboard/matching
+    // Profile is complete, go to user dashboard/matching/matches
     return {
-      path: '/matching',
+      path: '/matching/matches',
       reason: 'Profile complete - redirecting to matching'
     };
   }
@@ -57,21 +57,21 @@ export function getPostLoginRedirection(user: User): RedirectionResult {
 function getOnboardingStepByCompletion(completion: number): string {
   // 0% - Start with personal info (Step 1)
   if (completion < 20) return '/onboarding/personal-info/step-1';
-  
+
   // 20% - Continue to Step 2 (location/education)
   if (completion < 40) return '/onboarding/personal-info/step-2';
-  
+
   // 40% - Continue to Step 3 (lifestyle/religious)
   if (completion < 60) return '/onboarding/lifestyle';
-  
+
   // 60% - Continue to Step 4 (photos)
   if (completion < 80) return '/onboarding/add-photo';
-  
+
   // 80% - Continue to Step 5 (subscription)
   if (completion < 100) return '/onboarding/subscription-plans';
-  
+
   // 100% - Should not reach here, but fallback to matching
-  return '/matching';
+  return '/matching/matches';
 }
 
 /**
@@ -81,6 +81,12 @@ export function storeUserData(user: User, token: string): void {
   try {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userData', JSON.stringify(user));
+    
+    // Dispatch custom event to notify AuthGuard of localStorage changes
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('localStorageUpdate'));
+      console.log('Dispatched localStorageUpdate event for user data change');
+    }
   } catch (error) {
     console.error('Failed to store user data:', error);
   }

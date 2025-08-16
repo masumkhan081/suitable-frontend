@@ -12,11 +12,8 @@ export default function ReligiousLifestyleSection({
   onInputChange 
 }: ReligiousLifestyleSectionProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border-l-4 border-purple-500">
-      <div className="flex items-center mb-6">
-        <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mr-3">
-          <span className="text-purple-600 dark:text-purple-300 font-semibold text-sm">4</span>
-        </div>
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+      <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Religious & Lifestyle</h3>
       </div>
       

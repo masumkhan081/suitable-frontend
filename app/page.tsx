@@ -13,6 +13,20 @@ export default function Home() {
             </div>
             <span className="text-xl font-semibold text-gray-800 dark:text-white">Suitable</span>
           </div>
+          
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link href="/" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors font-medium">
+              Home
+            </Link>
+            <Link href="/about" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors font-medium">
+              About
+            </Link>
+            <Link href="/contact-us" className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors font-medium">
+              Contact
+            </Link>
+          </nav>
+          
           <div className="flex items-center space-x-4">
             <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
               <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

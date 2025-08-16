@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getUserData, getPostLoginRedirection } from '@/utils/auth'
 import { User } from '@/services/authService'
@@ -28,8 +28,8 @@ const REDIRECTION_MAP: RedirectionMap = {
   authenticated: {
     ADMIN: '/dashboard',
     USER: {
-      onboardingComplete: '/matching',
-      onboardingIncomplete: '/onboarding' // This will be dynamically determined
+      onboardingComplete: '/matching/matches',
+      onboardingIncomplete: '/onboarding'
     }
   },
   unauthenticated: '/auth/sign-in'
@@ -44,8 +44,10 @@ const ROUTE_CONFIG: RouteConfig[] = [
   { path: '/auth/forgot-password', requiresAuth: false },
   { path: '/auth/reset-password', requiresAuth: false },
 
-  // Public routes
+  // Homepage - should redirect authenticated users to role-based destination
   { path: '/', requiresAuth: false },
+
+  // Public routes
   { path: '/contact-us', requiresAuth: false },
   { path: '/terms', requiresAuth: false },
   { path: '/privacy', requiresAuth: false },
@@ -54,7 +56,10 @@ const ROUTE_CONFIG: RouteConfig[] = [
   { path: '/dashboard', requiresAuth: true, allowedRoles: ['ADMIN'] },
   { path: '/home', requiresAuth: true, allowedRoles: ['USER'], requiresOnboardingComplete: true },
   { path: '/profile', requiresAuth: true, allowedRoles: ['USER'], requiresOnboardingComplete: true },
-  { path: '/matching', requiresAuth: true, allowedRoles: ['USER'], requiresOnboardingComplete: true },
+  { path: '/matching/matches', requiresAuth: true, allowedRoles: ['USER'], requiresOnboardingComplete: true },
+  { path: '/matching/matches/matches', requiresAuth: true, allowedRoles: ['USER'], requiresOnboardingComplete: true },
+  { path: '/matching/matches/interests', requiresAuth: true, allowedRoles: ['USER'], requiresOnboardingComplete: true },
+  { path: '/matching/matches/mutual-matches', requiresAuth: true, allowedRoles: ['USER'], requiresOnboardingComplete: true },
 
   // Onboarding routes - require authentication but not complete onboarding
   { path: '/onboarding/personal-info', requiresAuth: true, allowedRoles: ['USER'] },
@@ -70,226 +75,270 @@ interface AuthGuardProps {
   children: React.ReactNode
 }
 
-export default function AuthGuard({ children }: AuthGuardProps) {
+// Helper functions
+const findRouteConfig = (path: string): RouteConfig | null => {
+  // First try exact match
+  let config = ROUTE_CONFIG.find(route => route.path === path)
+  if (config) return config
+
+  // Then try partial match for dynamic routes
+  config = ROUTE_CONFIG.find(route => {
+    if (route.path.includes('*')) {
+      const basePath = route.path.replace('/*', '')
+      return path.startsWith(basePath)
+    }
+    return false
+  })
+
+  return config || null
+}
+
+const isAuthRoute = (path: string): boolean => {
+  return path.startsWith('/auth/')
+}
+
+const isOnboardingRoute = (path: string): boolean => {
+  return path.startsWith('/onboarding')
+}
+
+const getAllowedOnboardingStep = (completion: number): string => {
+  const steps = [
+    { step: 'personal-info', minCompletion: 0 },
+    { step: 'education-and-career', minCompletion: 20 },
+    { step: 'lifestyle', minCompletion: 40 },
+    { step: 'religious-view', minCompletion: 60 },
+    { step: 'add-photo', minCompletion: 80 },
+    { step: 'subscription-plans', minCompletion: 90 }
+  ]
+
+  for (let i = steps.length - 1; i >= 0; i--) {
+    if (completion >= steps[i].minCompletion) {
+      return steps[i].step
+    }
+  }
+
+  return 'personal-info'
+}
+
+const isAllowedOnboardingPath = (currentPath: string, allowedStep: string, completion: number): boolean => {
+  const pathParts = currentPath.split('/')
+  const currentStep = pathParts[pathParts.length - 1]
+
+  if (currentPath === '/onboarding') {
+    return true
+  }
+
+  const stepConfig: { [key: string]: { minCompletion: number } } = {
+    'personal-info': { minCompletion: 0 },
+    'education-and-career': { minCompletion: 20 },
+    'lifestyle': { minCompletion: 40 },
+    'religious-view': { minCompletion: 60 },
+    'add-photo': { minCompletion: 80 },
+    'subscription-plans': { minCompletion: 90 }
+  }
+
+  const currentStepConfig = stepConfig[currentStep]
+  if (!currentStepConfig) {
+    return false
+  }
+
+  return completion >= currentStepConfig.minCompletion
+}
+
+const checkRoleAccess = (user: User, allowedRoles?: ('USER' | 'ADMIN')[]): boolean => {
+  if (!allowedRoles || allowedRoles.length === 0) {
+    return true
+  }
+  return allowedRoles.includes(user.role)
+}
+
+const getAuthenticatedRedirectPath = (user: User): string => {
+  const redirectionInfo = getPostLoginRedirection(user)
+  return redirectionInfo.path
+}
+
+const AuthGuard = ({ children }: AuthGuardProps) => {
   const router = useRouter()
   const pathname = usePathname()
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthorized, setIsAuthorized] = useState(false)
+  const [storageVersion, setStorageVersion] = useState(0)
 
-  useEffect(() => {
-    checkAuthAndRedirect()
-  }, [pathname])
-
-  const checkAuthAndRedirect = async () => {
+  const validateToken = useCallback(async (token: string): Promise<boolean> => {
     try {
-      setIsLoading(true)
+      console.log('Validating token...')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => {
+        console.log('Token validation timeout - aborting request')
+        controller.abort()
+      }, 5000) // Increased timeout to 5 seconds
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      console.log('Calling API:', `${apiUrl}/api/auth/me`)
       
-      const userData = getUserData()
-      let isAuthenticated = !!userData
+      const response = await fetch(`${apiUrl}/api/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        signal: controller.signal
+      })
 
-      // If user has token, validate it with backend
-      if (userData) {
-        const authToken = localStorage.getItem('authToken')
-        if (authToken) {
-          try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/auth/me`, {
-              headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-              }
-            })
+      clearTimeout(timeoutId)
+      console.log('Token validation response:', response.status, response.ok)
+      return response.ok
+    } catch (error: any) {
+      console.error('Token validation failed:', error.name, error.message)
+      // If it's a timeout or network error, assume token is invalid
+      if (error.name === 'AbortError') {
+        console.log('Token validation timed out')
+      }
+      return false
+    }
+  }, [])
 
-            if (!response.ok) {
-              // Token is invalid, clear localStorage
-              localStorage.removeItem('userData')
-              localStorage.removeItem('userProfile')
-              localStorage.removeItem('authToken')
-              isAuthenticated = false
-            }
-          } catch (error) {
-            console.error('Token validation failed:', error)
-            // Clear invalid data
-            localStorage.removeItem('userData')
-            localStorage.removeItem('userProfile')
-            localStorage.removeItem('authToken')
-            isAuthenticated = false
-          }
-        } else {
-          // No token found, clear user data
-          localStorage.removeItem('userData')
-          localStorage.removeItem('userProfile')
-          isAuthenticated = false
+  const clearAuthData = useCallback(() => {
+    localStorage.removeItem('userData')
+    localStorage.removeItem('userProfile')
+    localStorage.removeItem('authToken')
+  }, [])
+
+  const checkRouteAuthorization = useCallback(async (userData: User) => {
+    if (pathname === '/') {
+      const redirectPath = getAuthenticatedRedirectPath(userData)
+      router.push(redirectPath)
+    }
+
+    if (isAuthRoute(pathname)) {
+      const redirectPath = getAuthenticatedRedirectPath(userData)
+      router.push(redirectPath)
+    }
+
+    const routeConfig = findRouteConfig(pathname)
+    if (!routeConfig) {
+      setIsAuthorized(true)
+      setIsLoading(false)
+      return
+    }
+
+    if (routeConfig.requiresAuth) {
+      if (!checkRoleAccess(userData, routeConfig.allowedRoles)) {
+        const redirectPath = getAuthenticatedRedirectPath(userData)
+        router.push(redirectPath)
+      }
+
+      if (routeConfig.requiresOnboardingComplete) {
+        const completion = userData.onboardingCompletion || 0
+        if (completion < 100) {
+          const allowedStep = getAllowedOnboardingStep(completion)
+          router.push(`/onboarding/${allowedStep}`)
         }
       }
+    }
 
-      // Find route configuration for current path
-      const routeConfig = findRouteConfig(pathname)
-
-      if (!routeConfig) {
-        // Route not configured, allow access
-        setIsAuthorized(true)
-        setIsLoading(false)
+    if (isOnboardingRoute(pathname)) {
+      const completion = userData.onboardingCompletion || 0
+      if (completion >= 100) {
+        router.push('/matching/matches')
         return
       }
 
-      // Handle authentication requirements
-      if (routeConfig.requiresAuth && !isAuthenticated) {
-        // Route requires auth but user is not authenticated
-        console.log('Redirecting to sign-in: Route requires authentication')
-        router.push(REDIRECTION_MAP.unauthenticated)
+      const allowedStep = getAllowedOnboardingStep(completion)
+      if (!isAllowedOnboardingPath(pathname, allowedStep, completion)) {
+        router.push(`/onboarding/${allowedStep}`)
         return
       }
+    }
 
-      // Handle auth routes when user is already authenticated
-      if (!routeConfig.requiresAuth && isAuthenticated && isAuthRoute(pathname)) {
-        // User is authenticated but trying to access auth routes
+    setIsAuthorized(true)
+    setIsLoading(false)
+  }, [pathname, router])
+
+  const checkAuthAndRedirect = useCallback(async () => {
+    setIsLoading(true)
+
+    // Quick bypass for auth routes - don't validate tokens on sign-in/sign-up pages
+    if (isAuthRoute(pathname)) {
+      console.log('Auth route detected, skipping token validation')
+      const userData = getUserData()
+      const authToken = localStorage.getItem('authToken')
+      
+      // If user is already authenticated, redirect them away from auth pages
+      if (authToken && userData) {
         const redirectPath = getAuthenticatedRedirectPath(userData)
-        console.log('Redirecting authenticated user from auth route to:', redirectPath)
+        console.log('Already authenticated, redirecting from auth page to:', redirectPath)
         router.push(redirectPath)
         return
       }
-
-      // Handle role-based access control
-      if (routeConfig.requiresAuth && isAuthenticated) {
-        // Handle sequential onboarding step protection
-        if (isOnboardingRoute(pathname) && userData.role === 'USER') {
-          const allowedStep = getAllowedOnboardingStep(userData.onboardingCompletion)
-          if (!isAllowedOnboardingPath(pathname, allowedStep, userData.onboardingCompletion)) {
-            console.log(`🔒 Blocking access to ${pathname}. User completion: ${userData.onboardingCompletion}%. Redirecting to: ${allowedStep}`)
-            router.push(allowedStep)
-            return
-          }
-        }
-
-        // Handle role-based access
-        if (routeConfig.allowedRoles && !checkRoleAccess(userData, routeConfig.allowedRoles)) {
-          // User doesn't have required role
-          const redirectPath = getAuthenticatedRedirectPath(userData)
-          console.log('Redirecting due to insufficient role:', redirectPath)
-          router.push(redirectPath)
-          return
-        }
-
-        // Handle onboarding completion requirements (only if user is still authenticated)
-        if (isAuthenticated && userData && routeConfig.requiresOnboardingComplete && userData.onboardingCompletion < 100) {
-          // Route requires complete onboarding but user hasn't completed it
-          const redirectionInfo = getPostLoginRedirection(userData)
-          console.log('Redirecting to onboarding: Route requires complete profile ->', redirectionInfo.path)
-          router.push(redirectionInfo.path)
-          return
-        }
-
-        // Handle onboarding routes when user has completed onboarding (only if user is still authenticated)
-        if (isAuthenticated && userData && isOnboardingRoute(pathname) && userData.onboardingCompletion >= 100) {
-          // User has completed onboarding but trying to access onboarding routes
-          console.log('Redirecting completed user from onboarding to matching')
-          router.push(REDIRECTION_MAP.authenticated.USER.onboardingComplete)
-          return
-        }
-      }
-
-      // All checks passed, allow access
+      
+      // Allow access to auth pages for unauthenticated users
       setIsAuthorized(true)
-
-    } catch (error) {
-      console.error('AuthGuard error:', error)
-      // On error, redirect to sign-in for safety
-      router.push(REDIRECTION_MAP.unauthenticated)
-    } finally {
       setIsLoading(false)
-    }
-  }
-
-  // Helper functions
-  const findRouteConfig = (path: string): RouteConfig | null => {
-    // Find exact match first
-    let config = ROUTE_CONFIG.find(route => route.path === path)
-
-    if (!config) {
-      // Find partial match for dynamic routes, prioritizing longer paths
-      const matches = ROUTE_CONFIG.filter(route =>
-        path.startsWith(route.path) && route.path !== '/'
-      ).sort((a, b) => b.path.length - a.path.length) // Sort by length descending
-
-      config = matches[0] || null
+      return
     }
 
-    return config || null
-  }
+    const userData = getUserData()
+    const authToken = localStorage.getItem('authToken')
 
-  const isAuthRoute = (path: string): boolean => {
-    return path.startsWith('/auth/')
-  }
-
-  const isOnboardingRoute = (path: string): boolean => {
-    return path.startsWith('/onboarding')
-  }
-
-  const getAllowedOnboardingStep = (completion: number): string => {
-    // 0% - Start with personal info (Step 1)
-    if (completion < 20) return '/onboarding/personal-info/step-1';
-
-    // 20% - Continue to Step 2 (location/education)
-    if (completion < 40) return '/onboarding/personal-info/step-2';
-
-    // 40% - Continue to education/career
-    if (completion < 60) return '/onboarding/education-and-career/step-1';
-
-    // 60% - Continue to religious view
-    if (completion < 80) return '/onboarding/religious-view';
-
-    // 80% - Continue to add photo
-    if (completion < 100) return '/onboarding/add-photo';
-
-    // 100% - Should not reach here, but fallback to matching
-    return '/matching';
-  }
-
-  const isAllowedOnboardingPath = (currentPath: string, allowedStep: string, completion: number): boolean => {
-    // Always allow the main onboarding welcome page
-    if (currentPath === '/onboarding') return true;
-
-    // Always allow the exact step they should be on
-    if (currentPath === allowedStep) return true;
-
-    // Define step hierarchy with completion requirements
-    const stepHierarchy = [
-      { path: '/onboarding/personal-info/step-1', minCompletion: 0 },
-      { path: '/onboarding/personal-info/step-2', minCompletion: 20 },
-      { path: '/onboarding/education-and-career/step-1', minCompletion: 40 },
-      { path: '/onboarding/lifestyle', minCompletion: 40 }, // Alternative path
-      { path: '/onboarding/religious-view', minCompletion: 60 },
-      { path: '/onboarding/add-photo', minCompletion: 80 },
-      { path: '/onboarding/subscription-plans', minCompletion: 80 } // Alternative path
-    ];
-
-    // Find the step configuration for current path
-    const currentStepConfig = stepHierarchy.find(step => currentPath.startsWith(step.path));
-
-    if (!currentStepConfig) {
-      // Path not in hierarchy, allow access (might be a general onboarding page)
-      return true;
+    if (!authToken || !userData) {
+      console.log('No auth data found, redirecting to sign in')
+      clearAuthData()
+      router.push(REDIRECTION_MAP.unauthenticated)
+      return
     }
 
-    // Check if user has sufficient completion to access this step
-    return completion >= currentStepConfig.minCompletion;
-  }
-
-  const checkRoleAccess = (user: User, allowedRoles?: ('USER' | 'ADMIN')[]): boolean => {
-    if (!allowedRoles || allowedRoles.length === 0) {
-      return true // No role restrictions
+    console.log('Attempting token validation...')
+    const isValidToken = await validateToken(authToken)
+    
+    if (!isValidToken) {
+      console.log('Token validation failed - checking if API is reachable')
+      
+      // Try a simple health check to see if API is reachable
+      try {
+        const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/auth/me`, {
+          method: 'HEAD',
+          signal: AbortSignal.timeout(2000)
+        })
+        
+        // If we get any response (even 401), API is reachable, so token is truly invalid
+        console.log('API is reachable, token is invalid - redirecting to sign in')
+        clearAuthData()
+        router.push(REDIRECTION_MAP.unauthenticated)
+        return
+      } catch (error) {
+        // API is unreachable, allow user to proceed with localStorage data
+        console.warn('API unreachable, proceeding with cached auth data:', error)
+        console.log('Proceeding with cached user data due to API unavailability')
+      }
     }
 
-    return allowedRoles.includes(user.role)
-  }
+    await checkRouteAuthorization(userData)
+  }, [pathname, router, validateToken, clearAuthData, checkRouteAuthorization])
 
-  const getAuthenticatedRedirectPath = (user: User): string => {
-    // Use the existing redirection logic from utils/auth.ts
-    const redirectionInfo = getPostLoginRedirection(user)
-    return redirectionInfo.path
-  }
+  // Listen for localStorage changes to re-evaluate auth when user data is updated
+  useEffect(() => {
+    const handleStorageChange = () => {
+      console.log('localStorage changed, re-evaluating auth...')
+      setStorageVersion(prev => prev + 1)
+    }
 
-  // Loading state
+    // Listen for storage events from other tabs/windows
+    window.addEventListener('storage', handleStorageChange)
+
+    // Custom event for same-tab localStorage changes
+    window.addEventListener('localStorageUpdate', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('localStorageUpdate', handleStorageChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    checkAuthAndRedirect()
+  }, [checkAuthAndRedirect, storageVersion])
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -301,27 +350,16 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     )
   }
 
-  // Unauthorized state (should not reach here due to redirects)
-  if (!isAuthorized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Unauthorized</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">You don't have permission to access this page.</p>
-          <button
-            onClick={() => router.push(REDIRECTION_MAP.unauthenticated)}
-            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-          >
-            Go to Sign In
-          </button>
-        </div>
-      </div>
-    )
+  // Show content if authorized
+  if (isAuthorized) {
+    return <>{children}</>
   }
 
-  // Authorized - render children
-  return <>{children}</>
+  // Default fallback (should not reach here)
+  return null
 }
+
+export default AuthGuard
 
 // Export configuration for external use
 export { REDIRECTION_MAP, ROUTE_CONFIG }

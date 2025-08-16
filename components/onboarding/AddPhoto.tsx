@@ -6,14 +6,14 @@ import { toast } from 'sonner'
 import { ProfileService } from '@/services/profileService'
 import { getUserData, storeUserData } from '@/utils/auth'
 import { Camera, Upload, X, Check } from 'lucide-react'
-
+// 
 type Props = {
   onUpload?: (file: File) => void
   onSkip?: () => void
   selectedImage?: File | null
   onImageSelect?: (file: File | null) => void
 }
-
+// 
 export default function AddPhoto({ onUpload, onSkip, selectedImage: externalSelectedImage, onImageSelect }: Props) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
