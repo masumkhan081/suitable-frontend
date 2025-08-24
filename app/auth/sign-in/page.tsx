@@ -22,11 +22,6 @@ export default function page() {
 
         <div className="md:min-w-[500px] min-w-[360px] w-auto flex flex-col gap-6">
           {/* Demo Instructions */}
-
-          <div className="flex flex-col gap-0 items-start justify-center">
-            <EnhanceText txt="Welcome Back" styleKey="formTitle" />
-            <span className="">Enter your credentials</span>
-          </div>
           <SignIn />
         </div>
       </div>

@@ -1,8 +1,9 @@
 'use client'
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Sun, Moon, Bell, MessageCircle, User } from 'lucide-react'
+import { Sun, Moon, Bell, MessageCircle, User, ChevronDown, LogOut } from 'lucide-react'
+import { tokenManager } from '@/services/authService'
 
 interface NavItem {
   label: string
@@ -13,6 +14,7 @@ interface NavItem {
 interface TopNavProps {
   userRole?: 'user' | 'admin' | 'guest'
   userName?: string
+  userProfileImage?: string | null
   showNotifications?: boolean
   showMessages?: boolean
   onThemeToggle?: () => void
@@ -23,6 +25,7 @@ interface TopNavProps {
 export default function TopNav({ 
   userRole = 'user', 
   userName = 'User',
+  userProfileImage = null,
   showNotifications = true,
   showMessages = true,
   onThemeToggle,
@@ -30,6 +33,49 @@ export default function TopNav({
   customNavItems
 }: TopNavProps) {
   const router = useRouter()
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
+
+  // Helper function to validate and get profile image URL
+  const getProfileImageUrl = (imageUrl: string | null): string | null => {
+    if (!imageUrl || imageUrl.trim() === '') return null
+    
+    try {
+      // Check if it's a valid URL
+      new URL(imageUrl)
+      return imageUrl
+    } catch {
+      // If not a valid URL, it might be just a filename
+      // In this case, we should return null since we expect full URLs
+      return null
+    }
+  }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const handleLogout = () => {
+    tokenManager.removeToken()
+    localStorage.removeItem('userData')
+    localStorage.removeItem('userProfile')
+    
+    // Dispatch custom event to notify AuthGuard
+    window.dispatchEvent(new Event('localStorageUpdate'))
+    
+    setIsProfileMenuOpen(false)
+    router.push('/auth/sign-in')
+  }
   
   const getNavItems = (): NavItem[] => {
     switch (userRole) {
@@ -117,14 +163,53 @@ export default function TopNav({
 
           {/* User Menu */}
           {userRole !== 'guest' ? (
-            <div className="flex items-center space-x-2">
-              <Link 
-                href="/profile"
-                className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors cursor-pointer"
+            <div className="relative" ref={profileMenuRef}>
+              <button
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
               >
-                <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-              </Link>
-              <span className="text-sm text-gray-700 dark:text-gray-300">{userName}</span>
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                  {getProfileImageUrl(userProfileImage) ? (
+                    <img
+                      src={getProfileImageUrl(userProfileImage)!}
+                      alt={`${userName} profile`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to default icon if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div className={`w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center ${getProfileImageUrl(userProfileImage) ? 'hidden' : ''}`}>
+                    <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                  </div>
+                </div>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{userName}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isProfileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                    className="flex items-center space-x-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Profile</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-full text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center space-x-2">

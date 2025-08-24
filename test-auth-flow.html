@@ -1,0 +1,197 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Test Authentication Flow</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        padding: 10px 15px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .login-btn {
+        background: #4caf50;
+        color: white;
+      }
+      .test-btn {
+        background: #2196f3;
+        color: white;
+      }
+      .clear-btn {
+        background: #f44336;
+        color: white;
+      }
+      input {
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+      pre {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 3px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Test Authentication & Profile Image Upload</h1>
+
+    <div class="section">
+      <h3>Step 1: Login</h3>
+      <input type="email" id="email" placeholder="Email" value="test@example.com" />
+      <input type="password" id="password" placeholder="Password" value="password123" />
+      <button class="login-btn" onclick="login()">Login</button>
+      <div id="login-result"></div>
+    </div>
+
+    <div class="section">
+      <h3>Update Profile Image</h3>
+      <input
+        type="text"
+        id="imageUrl"
+        placeholder="Enter ImageKit URL"
+        style="width: 400px; margin-right: 10px"
+      />
+      <button onclick="testProfileImageUpdate()">Update Profile Image</button>
+      <button onclick="useSampleImageKit()">Use Sample ImageKit URL</button>
+      <div id="image-result"></div>
+    </div>
+
+    <div class="section">
+      <h3>Current Auth Status</h3>
+      <button onclick="checkAuthStatus()">Check Status</button>
+      <button class="clear-btn" onclick="clearAuth()">Clear Auth</button>
+      <div id="auth-status"></div>
+    </div>
+
+    <script>
+      const API_BASE = 'http://localhost:3000'
+
+      async function login() {
+        const email = document.getElementById('email').value
+        const password = document.getElementById('password').value
+        const resultDiv = document.getElementById('login-result')
+
+        try {
+          resultDiv.innerHTML = '<p>Logging in...</p>'
+
+          const response = await fetch(`${API_BASE}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+          })
+
+          const data = await response.json()
+
+          if (data.success && data.data.token) {
+            localStorage.setItem('authToken', data.data.token)
+            localStorage.setItem('userData', JSON.stringify(data.data.user))
+
+            resultDiv.innerHTML = `
+                        <p style="color: green;">✅ Login successful!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `
+          } else {
+            resultDiv.innerHTML = `
+                        <p style="color: red;">❌ Login failed</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`
+        }
+      }
+
+      function useSampleImageKit() {
+        // Sample ImageKit URL for testing
+        const sampleUrl = 'https://ik.imagekit.io/demo/sample-folder/sample-image.jpg'
+        document.getElementById('imageUrl').value = sampleUrl
+      }
+
+      async function testProfileImageUpdate() {
+        const imageUrl = document.getElementById('imageUrl').value
+        const resultDiv = document.getElementById('image-result')
+        const token = localStorage.getItem('authToken')
+
+        if (!token) {
+          resultDiv.innerHTML = '<p style="color: red;">❌ Please login first</p>'
+          return
+        }
+
+        if (!imageUrl) {
+          resultDiv.innerHTML = '<p style="color: red;">❌ Please enter an ImageKit URL</p>'
+          return
+        }
+
+        try {
+          resultDiv.innerHTML = '<p>Updating profile image...</p>'
+
+          const response = await fetch(`${API_BASE}/api/profile/image`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ profileImage: imageUrl })
+          })
+
+          const data = await response.json()
+
+          if (response.ok && data.success) {
+            resultDiv.innerHTML = `
+                        <p style="color: green;">✅ Profile image updated successfully!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `
+          } else {
+            resultDiv.innerHTML = `
+                        <p style="color: red;">❌ Update failed</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`
+        }
+      }
+
+      function checkAuthStatus() {
+        const token = localStorage.getItem('authToken')
+        const userData = localStorage.getItem('userData')
+        const statusDiv = document.getElementById('auth-status')
+
+        statusDiv.innerHTML = `
+                <h4>Authentication Status:</h4>
+                <p><strong>Token:</strong> ${token ? token.substring(0, 30) + '...' : 'None'}</p>
+                <p><strong>User Data:</strong> ${userData ? 'Present' : 'None'}</p>
+                ${userData ? `<pre>${JSON.stringify(JSON.parse(userData), null, 2)}</pre>` : ''}
+            `
+      }
+
+      function clearAuth() {
+        localStorage.removeItem('authToken')
+        localStorage.removeItem('userData')
+        localStorage.removeItem('userProfile')
+        document.getElementById('auth-status').innerHTML = '<p>Auth data cleared</p>'
+        document.getElementById('login-result').innerHTML = ''
+        document.getElementById('image-result').innerHTML = ''
+      }
+
+      // Initialize
+      checkAuthStatus()
+    </script>
+  </body>
+</html>

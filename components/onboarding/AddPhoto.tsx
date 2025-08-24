@@ -4,17 +4,23 @@ import React, { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { ProfileService } from '@/services/profileService'
+import { uploadToCloudinary } from '@/lib/cloudinaryUpload'
 import { getUserData, storeUserData } from '@/utils/auth'
 import { Camera, Upload, X, Check } from 'lucide-react'
-// 
+//
 type Props = {
   onUpload?: (file: File) => void
   onSkip?: () => void
   selectedImage?: File | null
   onImageSelect?: (file: File | null) => void
 }
-// 
-export default function AddPhoto({ onUpload, onSkip, selectedImage: externalSelectedImage, onImageSelect }: Props) {
+//
+export default function AddPhoto({
+  onUpload,
+  onSkip,
+  selectedImage: externalSelectedImage,
+  onImageSelect
+}: Props) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -84,20 +90,16 @@ export default function AddPhoto({ onUpload, onSkip, selectedImage: externalSele
     setError(null)
 
     try {
-      console.log('Uploading image:', file.name)
-
-      // Create FormData
-      const formData = new FormData()
-      formData.append('profileImage', file)
-
-      console.log('FormData created with image')
-
-      // Upload image
-      const response = await ProfileService.updateProfileStep5(formData)
-
-      console.log('Upload response:', response)
-
-      if (response.success) {
+      console.log('Starting photo upload:', file.name)
+      
+      // Step 1: Upload to Cloudinary
+      const uploadResult = await uploadToCloudinary(file)
+      console.log('Cloudinary upload successful:', uploadResult.secure_url)
+      
+      // Step 2: Update profile with the new image URL
+      const updateResult = await ProfileService.updateProfileImage(uploadResult.secure_url)
+      
+      if (updateResult.success) {
         toast.success('Profile image uploaded successfully!')
 
         // Update user data in localStorage with 100% completion
@@ -118,7 +120,7 @@ export default function AddPhoto({ onUpload, onSkip, selectedImage: externalSele
           router.push('/profile')
         }, 1500)
       } else {
-        throw new Error(response.message || 'Upload failed')
+        throw new Error(updateResult.error?.message || 'Failed to update profile')
       }
     } catch (error: any) {
       console.error('Upload error:', error)
@@ -151,6 +153,9 @@ export default function AddPhoto({ onUpload, onSkip, selectedImage: externalSele
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Add Your Photo</h2>
         <p className="text-gray-600">Upload a profile picture to complete your profile</p>
       </div>
+
+
+      <span>ffffffff</span>
 
       {/* Photo Preview/Upload Area */}
       <div className="relative">
@@ -230,8 +235,6 @@ export default function AddPhoto({ onUpload, onSkip, selectedImage: externalSele
           </div>
         </div>
       )}
-
-
     </div>
   )
 }

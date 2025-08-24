@@ -256,23 +256,25 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   }, [pathname, router])
 
   const checkAuthAndRedirect = useCallback(async () => {
+    console.log('🔍 AuthGuard: checkAuthAndRedirect called for path:', pathname)
     setIsLoading(true)
 
     // Quick bypass for auth routes - don't validate tokens on sign-in/sign-up pages
     if (isAuthRoute(pathname)) {
-      console.log('Auth route detected, skipping token validation')
+      console.log('🔄 AuthGuard: Auth route detected, skipping token validation')
       const userData = getUserData()
       const authToken = localStorage.getItem('authToken')
       
       // If user is already authenticated, redirect them away from auth pages
       if (authToken && userData) {
         const redirectPath = getAuthenticatedRedirectPath(userData)
-        console.log('Already authenticated, redirecting from auth page to:', redirectPath)
+        console.log('🔄 AuthGuard: Already authenticated, redirecting from auth page to:', redirectPath)
         router.push(redirectPath)
         return
       }
       
       // Allow access to auth pages for unauthenticated users
+      console.log('✅ AuthGuard: Allowing access to auth page for unauthenticated user')
       setIsAuthorized(true)
       setIsLoading(false)
       return
@@ -281,38 +283,35 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
     const userData = getUserData()
     const authToken = localStorage.getItem('authToken')
 
+    console.log('🔍 AuthGuard: Checking auth data:', {
+      hasToken: !!authToken,
+      hasUserData: !!userData,
+      tokenPreview: authToken ? authToken.substring(0, 20) + '...' : 'none'
+    })
+
     if (!authToken || !userData) {
-      console.log('No auth data found, redirecting to sign in')
+      console.log('🚫 AuthGuard: No auth data found, redirecting to sign in')
+      console.log('🚫 AuthGuard: Redirect target:', REDIRECTION_MAP.unauthenticated)
       clearAuthData()
+      setIsLoading(false)
+      setIsAuthorized(false)
       router.push(REDIRECTION_MAP.unauthenticated)
       return
     }
 
-    console.log('Attempting token validation...')
+    console.log('✅ AuthGuard: Auth data found, validating token...')
     const isValidToken = await validateToken(authToken)
     
     if (!isValidToken) {
-      console.log('Token validation failed - checking if API is reachable')
-      
-      // Try a simple health check to see if API is reachable
-      try {
-        const healthCheck = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/auth/me`, {
-          method: 'HEAD',
-          signal: AbortSignal.timeout(2000)
-        })
-        
-        // If we get any response (even 401), API is reachable, so token is truly invalid
-        console.log('API is reachable, token is invalid - redirecting to sign in')
-        clearAuthData()
-        router.push(REDIRECTION_MAP.unauthenticated)
-        return
-      } catch (error) {
-        // API is unreachable, allow user to proceed with localStorage data
-        console.warn('API unreachable, proceeding with cached auth data:', error)
-        console.log('Proceeding with cached user data due to API unavailability')
-      }
+      console.log('🚫 AuthGuard: Token validation failed, redirecting to sign in')
+      clearAuthData()
+      setIsLoading(false)
+      setIsAuthorized(false)
+      router.push(REDIRECTION_MAP.unauthenticated)
+      return
     }
 
+    console.log('✅ AuthGuard: Token is valid, checking route authorization...')
     await checkRouteAuthorization(userData)
   }, [pathname, router, validateToken, clearAuthData, checkRouteAuthorization])
 

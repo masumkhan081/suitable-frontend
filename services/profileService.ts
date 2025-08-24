@@ -140,6 +140,11 @@ export class ProfileService {
     return apiClient.post<ProfileResponse>('/api/profile/photos', formData);
   }
 
+  // Update profile image URL
+  static async updateProfileImage(imageUrl: string): Promise<ProfileResponse> {
+    return apiClient.patch<ProfileResponse>('/api/profile/image', { profileImage: imageUrl });
+  }
+
   // Get profile photos
   static async getPhotos(): Promise<ProfileListResponse> {
     return apiClient.get<ProfileListResponse>('/api/profile/photos');

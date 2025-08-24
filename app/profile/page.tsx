@@ -2,8 +2,25 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { User, Settings, Heart, Shield, HelpCircle, MessageCircle, Edit2, Save, X, Eye, CheckCircle, Mail, MessageSquare, Sparkles, Users } from 'lucide-react'
+import {
+  User,
+  Settings,
+  Heart,
+  Shield,
+  HelpCircle,
+  MessageCircle,
+  Edit2,
+  Save,
+  X,
+  Eye,
+  CheckCircle,
+  Mail,
+  MessageSquare,
+  Sparkles,
+  Users
+} from 'lucide-react'
 import { ProfileService } from '@/services/profileService'
+import { uploadToCloudinary } from '@/lib/cloudinaryUpload'
 import { toast } from 'sonner'
 import PersonalDetailsSection from '@/components/profile/PersonalDetailsSection'
 import LocationBackgroundSection from '@/components/profile/LocationBackgroundSection'
@@ -55,8 +72,9 @@ export default function UserProfile() {
     return 'profile'
   })
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [editedProfile, setEditedProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-  
+
   // Save active tab to localStorage whenever it changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -64,25 +82,25 @@ export default function UserProfile() {
     }
   }, [activeTab])
   const [error, setError] = useState<string | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  
+
   // Navigation items for TopNav - same as matching pages
   const navigationItems = [
     {
       label: 'Matches',
       href: '/matching/matches',
-      icon: Heart,
+      icon: Heart
     },
     {
       label: 'Interests',
       href: '/matching/interests',
-      icon: Sparkles,
+      icon: Sparkles
     },
     {
       label: 'Mutual Matches',
       href: '/matching/mutual-matches',
-      icon: Users,
+      icon: Users
     }
   ]
 
@@ -93,7 +111,7 @@ export default function UserProfile() {
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'privacy', label: 'Data Privacy', icon: Shield },
     { id: 'support', label: 'Contact Support', icon: MessageCircle },
-    { id: 'faq', label: 'FAQ', icon: HelpCircle },
+    { id: 'faq', label: 'FAQ', icon: HelpCircle }
   ]
 
   useEffect(() => {
@@ -104,17 +122,47 @@ export default function UserProfile() {
     try {
       setLoading(true)
       setError(null)
-      const response = await ProfileService.getMyProfile()
+      console.log('Fetching user profile...')
       
+      const response = await ProfileService.getMyProfile()
+      console.log('Profile API response:', response)
+
       if (response.success && response.data) {
-        setProfile(response.data.profile)
+        const profileData = response.data.profile
+        console.log('Profile data received:', profileData)
+        
+        // Transform profileImageUrl to profileImage for consistency
+        if (profileData.profileImageUrl && !profileData.profileImage) {
+          profileData.profileImage = profileData.profileImageUrl
+        }
+        
+        // Transform imageGallery from array of strings to array of objects with id and url
+        if (profileData.imageGallery && Array.isArray(profileData.imageGallery)) {
+          profileData.imageGallery = profileData.imageGallery.map((url: string, index: number) => ({
+            id: `gallery-${index}-${Date.now()}`,
+            url: url
+          }))
+        }
+        
+        setProfile(profileData)
+        setEditedProfile(profileData) // Initialize edited profile with fetched data
+        console.log('Profile state updated successfully')
       } else {
-        setError('Failed to load profile')
-        toast.error('Failed to load profile')
+        const errorMsg = response.error?.message || response.message || 'Failed to load profile'
+        console.error('Profile fetch failed:', errorMsg)
+        setError(errorMsg)
+        toast.error(errorMsg)
       }
-    } catch (err) {
-      setError('An error occurred while loading profile')
-      toast.error('An error occurred while loading profile')
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err?.message || 'An error occurred while loading profile'
+      console.error('Profile fetch error:', err)
+      console.error('Error details:', {
+        message: err?.message,
+        response: err?.response?.data,
+        status: err?.response?.status
+      })
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -133,12 +181,119 @@ export default function UserProfile() {
   const handleSave = async () => {
     try {
       setIsSaving(true)
-      // TODO: Implement save functionality
-      // await ProfileService.updateProfile(profile)
+      console.log('🚀 CENTRAL SAVE - Starting comprehensive profile save...')
+      console.log('🚀 CENTRAL SAVE - Current editedProfile:', editedProfile)
+      
+      if (!editedProfile) {
+        throw new Error('No profile data to save')
+      }
+
+      const token = localStorage.getItem('authToken')
+      if (!token) {
+        throw new Error('No authentication token found')
+      }
+      
+      // Get current gallery state
+      let currentGallery = editedProfile?.imageGallery || []
+      
+      // Check if there are gallery photos that need to be uploaded
+      const galleryPhotosToUpload = currentGallery.filter(
+        (photo: any) => photo.isPreview && photo.file
+      )
+      
+      if (galleryPhotosToUpload.length > 0) {
+        console.log('📸 CENTRAL SAVE - Uploading gallery photos first...')
+        
+        // Upload gallery photos first
+        const uploadPromises = galleryPhotosToUpload.map((photo: any) => 
+          uploadToCloudinary(photo.file)
+        )
+        
+        const uploadResults = await Promise.all(uploadPromises)
+        const uploadedUrls = uploadResults.map(result => result.secure_url || result.url)
+        
+        // Update gallery with uploaded URLs
+        currentGallery = currentGallery.map((photo: any) => {
+          if (photo.isPreview && photo.file) {
+            const uploadIndex = galleryPhotosToUpload.findIndex(p => p.id === photo.id)
+            return {
+              id: photo.id,
+              url: uploadedUrls[uploadIndex] || photo.url,
+              isPreview: false
+            }
+          }
+          return { id: photo.id, url: photo.url, isPreview: false }
+        })
+      }
+      
+      // Prepare the complete profile data for backend
+      const profileDataToSave = {
+        // Personal Details
+        dob: editedProfile.dob,
+        gender: editedProfile.gender,
+        height: editedProfile.height,
+        maritalStatus: editedProfile.maritalStatus,
+        numberOfChildren: editedProfile.numberOfChildren,
+        numberOfSiblings: editedProfile.numberOfSiblings,
+        ethnicOrigin: editedProfile.ethnicOrigin,
+        nationality: editedProfile.nationality,
+        
+        // Location & Background
+        currentAddress: editedProfile.currentAddress,
+        backHomeAddress: editedProfile.backHomeAddress,
+        isWillingToRelocate: editedProfile.isWillingToRelocate,
+        
+        // Education & Career
+        educations: editedProfile.educations,
+        profession: editedProfile.profession,
+        
+        // Religious & Lifestyle
+        religion: editedProfile.religion,
+        sect: editedProfile.sect,
+        quranReadingStatus: editedProfile.quranReadingStatus,
+        halalEatingStatus: editedProfile.halalEatingStatus,
+        alcoholConsumptionStatus: editedProfile.alcoholConsumptionStatus,
+        smokingStatus: editedProfile.smokingStatus,
+        prayerFrequency: editedProfile.prayerFrequency,
+        aboutme: editedProfile.aboutme,
+        
+        // Gallery (processed URLs only)
+        imageGallery: currentGallery
+          .filter((photo: any) => photo.url && photo.url.trim() !== '')
+          .map((photo: any) => photo.url)
+      }
+
+      console.log('� CENTRAL SAVE - Complete profile data to save:', profileDataToSave)
+      
+      // Save complete profile to backend
+      const updateResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/profile/me`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(profileDataToSave),
+        }
+      )
+      
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text()
+        console.error('❌ CENTRAL SAVE - Backend error:', errorText)
+        throw new Error('Failed to update profile')
+      }
+      
+      const responseData = await updateResponse.json()
+      console.log('✅ CENTRAL SAVE - Profile saved successfully:', responseData)
+      
+      // Update local state with saved data
+      setProfile(editedProfile)
       
       toast.success('Profile updated successfully!')
       setIsEditing(false)
     } catch (err) {
+      console.error('❌ CENTRAL SAVE - Save failed:', err)
       toast.error('Failed to save profile changes')
     } finally {
       setIsSaving(false)
@@ -147,11 +302,57 @@ export default function UserProfile() {
 
   const handlePhotoUpload = async (file: File) => {
     try {
-      // TODO: Implement photo upload
-      toast.success('Photo uploaded successfully!')
-    } catch (err) {
-      toast.error('Failed to upload photo')
+      console.log('Starting photo upload:', file.name)
+      
+      // Step 1: Upload to ImageKit using upload service
+      const uploadResult = await uploadService.uploadProfilePicture(file)
+      console.log('ImageKit upload successful:', uploadResult.url)
+      
+      // Step 2: Update profile with the new image URL
+      const updateResult = await ProfileService.updateProfileImage(uploadResult.url)
+      
+      if (updateResult.success) {
+        // Step 3: Update local state with new image URL
+        setProfile(prev => prev ? { ...prev, profileImage: uploadResult.url } : null)
+        
+        toast.success('Photo uploaded successfully!')
+        console.log('Profile updated with new image URL')
+      } else {
+        throw new Error(updateResult.error?.message || 'Failed to update profile')
+      }
+      
+    } catch (err: any) {
+      console.error('Photo upload failed:', err)
+      toast.error(err?.message || 'Failed to upload photo')
     }
+  }
+
+  const handleProfileUpdate = (updatedData: Partial<Profile>) => {
+    console.log('📝 handleProfileUpdate called with:', updatedData)
+    
+    // Update both profile and editedProfile states
+    setProfile(prev => {
+      const updated = prev ? { ...prev, ...updatedData } : null
+      console.log('📝 Updated profile state:', updated)
+      return updated
+    })
+    setEditedProfile(prev => {
+      const updated = prev ? { ...prev, ...updatedData } : null
+      console.log('📝 Updated editedProfile state:', updated)
+      return updated
+    })
+  }
+
+  const handleInputChange = (field: string, value: any) => {
+    console.log(`📝 Input change - ${field}:`, value)
+    
+    // Update the editedProfile state with the new value
+    setEditedProfile(prev => {
+      if (!prev) return null
+      const updated = { ...prev, [field]: value }
+      console.log('📝 Updated editedProfile:', updated)
+      return updated
+    })
   }
 
   const calculateCompletionPercentage = (profile: Profile | null): number => {
@@ -161,17 +362,22 @@ export default function UserProfile() {
 
   const getPageTitle = () => {
     switch (activeTab) {
-      case 'profile': return 'My Profile'
-      case 'preference': return 'Filter & Preferences'
-      case 'settings': return 'Settings'
-      case 'privacy': return 'Data Privacy'
-      case 'support': return 'Contact Support'
-      case 'faq': return 'FAQ'
-      default: return 'Profile'
+      case 'profile':
+        return 'My Profile'
+      case 'preference':
+        return 'Filter & Preferences'
+      case 'settings':
+        return 'Settings'
+      case 'privacy':
+        return 'Data Privacy'
+      case 'support':
+        return 'Contact Support'
+      case 'faq':
+        return 'FAQ'
+      default:
+        return 'Profile'
     }
   }
-
-
 
   if (loading) {
     return (
@@ -202,16 +408,14 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <TopNav 
-        userRole="user" 
-        userName="Sorwar" 
-        customNavItems={navigationItems}
-      />
+      <TopNav userRole="user" userName="Sorwar" userProfileImage={profile?.profileImage} customNavItems={navigationItems} />
       <div className="flex">
         {/* Sidebar */}
         <div className="w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 min-h-screen">
           <div className="p-6">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">Account Settings</h2>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
+              Account Settings
+            </h2>
             <nav className="space-y-2">
               {sidebarItems.map((item) => {
                 const Icon = item.icon
@@ -244,10 +448,13 @@ export default function UserProfile() {
 
           {/* Tab Content */}
           {activeTab === 'profile' && (
-            <ProfileContent 
-              profile={profile} 
-              isEditing={isEditing} 
+            <ProfileContent
+              profile={profile}
+              editedProfile={editedProfile}
+              isEditing={isEditing}
               onPhotoUpload={handlePhotoUpload}
+              onProfileUpdate={handleProfileUpdate}
+              onInputChange={handleInputChange}
               onEdit={handleEdit}
               onSave={handleSave}
               onCancel={handleCancel}
@@ -268,17 +475,31 @@ export default function UserProfile() {
 }
 
 // Profile Content Component with Modular Sections
-function ProfileContent({ profile, isEditing, onPhotoUpload, onEdit, onSave, onCancel, isSaving, completionPercentage }: { 
-  profile: Profile | null, 
-  isEditing: boolean, 
-  onPhotoUpload: (file: File) => void,
-  onEdit: () => void,
-  onSave: () => void,
-  onCancel: () => void,
-  isSaving: boolean,
+function ProfileContent({
+  profile,
+  editedProfile,
+  isEditing,
+  onPhotoUpload,
+  onProfileUpdate,
+  onInputChange,
+  onEdit,
+  onSave,
+  onCancel,
+  isSaving,
+  completionPercentage
+}: {
+  profile: Profile | null
+  editedProfile: Profile | null
+  isEditing: boolean
+  onPhotoUpload: (file: File) => void
+  onProfileUpdate: (data: Partial<Profile>) => void
+  onInputChange: (field: string, value: any) => void
+  onEdit: () => void
+  onSave: () => void
+  onCancel: () => void
+  isSaving: boolean
   completionPercentage: number
 }) {
-  
   return (
     <div className="p-8 space-y-6">
       {/* Profile Completion and Edit Controls */}
@@ -289,8 +510,8 @@ function ProfileContent({ profile, isEditing, onPhotoUpload, onEdit, onSave, onC
             <span className="text-sm text-gray-600 dark:text-gray-400">Profile Completion:</span>
             <div className="flex items-center space-x-2">
               <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div 
-                  className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                <div
+                  className="bg-purple-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${completionPercentage}%` }}
                 ></div>
               </div>
@@ -299,12 +520,12 @@ function ProfileContent({ profile, isEditing, onPhotoUpload, onEdit, onSave, onC
               </span>
             </div>
           </div>
-          
+
           {/* Edit/Save/Cancel Controls */}
           <div className="flex items-center space-x-3">
             {!isEditing ? (
               <>
-                <button 
+                <button
                   onClick={() => window.open('/profile/preview', '_blank')}
                   className="flex items-center space-x-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
                 >
@@ -345,31 +566,31 @@ function ProfileContent({ profile, isEditing, onPhotoUpload, onEdit, onSave, onC
           </div>
         </div>
       </div>
-      
-      <PhotoSection 
-        profileData={profile} 
-        isEditing={isEditing}
-        onPhotoUpload={onPhotoUpload}
-      />
-      
+
+      <PhotoSection profileData={editedProfile} isEditing={isEditing} onPhotoUpload={onPhotoUpload} onProfileUpdate={onProfileUpdate} />
+
       <PersonalDetailsSection 
-        profileData={profile} 
-        isEditing={isEditing}
+        profileData={editedProfile} 
+        isEditing={isEditing} 
+        onInputChange={onInputChange}
       />
-      
+
       <LocationBackgroundSection 
-        profileData={profile} 
-        isEditing={isEditing}
+        profileData={editedProfile} 
+        isEditing={isEditing} 
+        onInputChange={onInputChange}
       />
-      
+
       <EducationCareerSection 
-        profileData={profile} 
-        isEditing={isEditing}
+        profileData={editedProfile} 
+        isEditing={isEditing} 
+        onInputChange={onInputChange}
       />
-      
+
       <ReligiousLifestyleSection 
-        profileData={profile} 
-        isEditing={isEditing}
+        profileData={editedProfile} 
+        isEditing={isEditing} 
+        onInputChange={onInputChange}
       />
     </div>
   )
@@ -396,15 +617,37 @@ function PreferenceContent() {
   const [isSaving, setIsSaving] = useState(false)
 
   const maritalStatusOptions = ['Single', 'Divorced', 'Widowed']
-  const countryOptions = ['Bangladesh', 'India', 'Pakistan', 'UK', 'USA', 'Canada', 'Australia', 'Saudi Arabia', 'UAE']
+  const countryOptions = [
+    'Bangladesh',
+    'India',
+    'Pakistan',
+    'UK',
+    'USA',
+    'Canada',
+    'Australia',
+    'Saudi Arabia',
+    'UAE'
+  ]
   const religionOptions = ['Islam', 'Christianity', 'Judaism', 'Hinduism', 'Buddhism', 'Other']
   const sectOptions = ['Sunni', 'Shia', 'Other', 'None']
-  const educationOptions = ['High School', 'Bachelor\'s', 'Master\'s', 'PhD', 'Diploma', 'Other']
-  const professionOptions = ['Doctor', 'Engineer', 'Teacher', 'Business', 'IT Professional', 'Student', 'Other']
+  const educationOptions = ['High School', "Bachelor's", "Master's", 'PhD', 'Diploma', 'Other']
+  const professionOptions = [
+    'Doctor',
+    'Engineer',
+    'Teacher',
+    'Business',
+    'IT Professional',
+    'Student',
+    'Other'
+  ]
   const prayerOptions = ['5 times a day', 'Sometimes', 'Rarely', 'Never']
 
-  const handleRangeChange = (field: 'ageRange' | 'heightRange', type: 'min' | 'max', value: number) => {
-    setPreferences(prev => ({
+  const handleRangeChange = (
+    field: 'ageRange' | 'heightRange',
+    type: 'min' | 'max',
+    value: number
+  ) => {
+    setPreferences((prev) => ({
       ...prev,
       [field]: {
         ...prev[field],
@@ -414,12 +657,12 @@ function PreferenceContent() {
   }
 
   const handleMultiSelect = (field: string, value: string) => {
-    setPreferences(prev => {
+    setPreferences((prev) => {
       const currentValues = prev[field as keyof typeof prev] as string[]
       const newValues = currentValues.includes(value)
-        ? currentValues.filter(v => v !== value)
+        ? currentValues.filter((v) => v !== value)
         : [...currentValues, value]
-      
+
       return {
         ...prev,
         [field]: newValues
@@ -428,7 +671,7 @@ function PreferenceContent() {
   }
 
   const handleSingleSelect = (field: string, value: 'any' | 'yes' | 'no') => {
-    setPreferences(prev => ({
+    setPreferences((prev) => ({
       ...prev,
       [field]: value
     }))
@@ -438,7 +681,7 @@ function PreferenceContent() {
     setIsSaving(true)
     try {
       // TODO: Implement API call to save preferences
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
       toast.success('Preferences saved successfully!')
     } catch (error) {
       toast.error('Failed to save preferences')
@@ -472,8 +715,12 @@ function PreferenceContent() {
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">Matching Preferences</h3>
-            <p className="text-gray-600 dark:text-gray-400">Set your preferences to find compatible matches</p>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+              Matching Preferences
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Set your preferences to find compatible matches
+            </p>
           </div>
           <div className="flex items-center space-x-3">
             <button
@@ -503,7 +750,9 @@ function PreferenceContent() {
         <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">Age Range</h4>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Minimum Age</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Minimum Age
+            </label>
             <input
               type="number"
               min="18"
@@ -514,7 +763,9 @@ function PreferenceContent() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Maximum Age</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Maximum Age
+            </label>
             <input
               type="number"
               min="18"
@@ -526,16 +777,21 @@ function PreferenceContent() {
           </div>
         </div>
         <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Looking for matches between {preferences.ageRange.min} and {preferences.ageRange.max} years old
+          Looking for matches between {preferences.ageRange.min} and {preferences.ageRange.max}{' '}
+          years old
         </div>
       </div>
 
       {/* Height Range */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">Height Range (cm)</h4>
+        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">
+          Height Range (cm)
+        </h4>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Minimum Height</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Minimum Height
+            </label>
             <input
               type="number"
               min="120"
@@ -546,7 +802,9 @@ function PreferenceContent() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Maximum Height</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Maximum Height
+            </label>
             <input
               type="number"
               min="120"
@@ -558,7 +816,8 @@ function PreferenceContent() {
           </div>
         </div>
         <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Looking for matches between {preferences.heightRange.min}cm and {preferences.heightRange.max}cm tall
+          Looking for matches between {preferences.heightRange.min}cm and{' '}
+          {preferences.heightRange.max}cm tall
         </div>
       </div>
 
@@ -582,7 +841,9 @@ function PreferenceContent() {
 
       {/* Countries */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">Preferred Countries</h4>
+        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">
+          Preferred Countries
+        </h4>
         <div className="grid grid-cols-3 gap-3">
           {countryOptions.map((country) => (
             <label key={country} className="flex items-center space-x-2 cursor-pointer">
@@ -600,12 +861,16 @@ function PreferenceContent() {
 
       {/* Religious Preferences */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">Religious Preferences</h4>
-        
+        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">
+          Religious Preferences
+        </h4>
+
         <div className="space-y-4">
           {/* Religion */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Religion</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Religion
+            </label>
             <div className="grid grid-cols-3 gap-3">
               {religionOptions.map((religion) => (
                 <label key={religion} className="flex items-center space-x-2 cursor-pointer">
@@ -623,7 +888,9 @@ function PreferenceContent() {
 
           {/* Sect */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sect</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Sect
+            </label>
             <div className="grid grid-cols-4 gap-3">
               {sectOptions.map((sect) => (
                 <label key={sect} className="flex items-center space-x-2 cursor-pointer">
@@ -641,7 +908,9 @@ function PreferenceContent() {
 
           {/* Prayer Frequency */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Prayer Frequency</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Prayer Frequency
+            </label>
             <div className="grid grid-cols-2 gap-3">
               {prayerOptions.map((prayer) => (
                 <label key={prayer} className="flex items-center space-x-2 cursor-pointer">
@@ -661,12 +930,16 @@ function PreferenceContent() {
 
       {/* Lifestyle Preferences */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">Lifestyle Preferences</h4>
-        
+        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">
+          Lifestyle Preferences
+        </h4>
+
         <div className="space-y-6">
           {/* Halal Food */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Eats Halal Food</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Eats Halal Food
+            </label>
             <div className="flex space-x-4">
               {['any', 'yes', 'no'].map((option) => (
                 <label key={option} className="flex items-center space-x-2 cursor-pointer">
@@ -678,7 +951,9 @@ function PreferenceContent() {
                     onChange={() => handleSingleSelect('eatHalal', option as 'any' | 'yes' | 'no')}
                     className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{option}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                    {option}
+                  </span>
                 </label>
               ))}
             </div>
@@ -686,7 +961,9 @@ function PreferenceContent() {
 
           {/* Smoking */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Smoking</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Smoking
+            </label>
             <div className="flex space-x-4">
               {['any', 'yes', 'no'].map((option) => (
                 <label key={option} className="flex items-center space-x-2 cursor-pointer">
@@ -698,7 +975,9 @@ function PreferenceContent() {
                     onChange={() => handleSingleSelect('smoke', option as 'any' | 'yes' | 'no')}
                     className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{option}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                    {option}
+                  </span>
                 </label>
               ))}
             </div>
@@ -706,7 +985,9 @@ function PreferenceContent() {
 
           {/* Alcohol */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Drinks Alcohol</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Drinks Alcohol
+            </label>
             <div className="flex space-x-4">
               {['any', 'yes', 'no'].map((option) => (
                 <label key={option} className="flex items-center space-x-2 cursor-pointer">
@@ -715,10 +996,14 @@ function PreferenceContent() {
                     name="drinkAlcohol"
                     value={option}
                     checked={preferences.drinkAlcohol === option}
-                    onChange={() => handleSingleSelect('drinkAlcohol', option as 'any' | 'yes' | 'no')}
+                    onChange={() =>
+                      handleSingleSelect('drinkAlcohol', option as 'any' | 'yes' | 'no')
+                    }
                     className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{option}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                    {option}
+                  </span>
                 </label>
               ))}
             </div>
@@ -726,7 +1011,9 @@ function PreferenceContent() {
 
           {/* Hijab/Beard */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Wears Hijab / Keeps Beard</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Wears Hijab / Keeps Beard
+            </label>
             <div className="flex space-x-4">
               {['any', 'yes', 'no'].map((option) => (
                 <label key={option} className="flex items-center space-x-2 cursor-pointer">
@@ -735,10 +1022,14 @@ function PreferenceContent() {
                     name="wearHijabKeepBeard"
                     value={option}
                     checked={preferences.wearHijabKeepBeard === option}
-                    onChange={() => handleSingleSelect('wearHijabKeepBeard', option as 'any' | 'yes' | 'no')}
+                    onChange={() =>
+                      handleSingleSelect('wearHijabKeepBeard', option as 'any' | 'yes' | 'no')
+                    }
                     className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{option}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                    {option}
+                  </span>
                 </label>
               ))}
             </div>
@@ -748,12 +1039,16 @@ function PreferenceContent() {
 
       {/* Education & Career */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">Education & Career</h4>
-        
+        <h4 className="text-md font-semibold text-gray-800 dark:text-white mb-4">
+          Education & Career
+        </h4>
+
         <div className="space-y-4">
           {/* Education */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Education Level</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Education Level
+            </label>
             <div className="grid grid-cols-3 gap-3">
               {educationOptions.map((education) => (
                 <label key={education} className="flex items-center space-x-2 cursor-pointer">
@@ -771,7 +1066,9 @@ function PreferenceContent() {
 
           {/* Profession */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Profession</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Profession
+            </label>
             <div className="grid grid-cols-3 gap-3">
               {professionOptions.map((profession) => (
                 <label key={profession} className="flex items-center space-x-2 cursor-pointer">
@@ -823,9 +1120,12 @@ function SupportContent() {
         <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
           <MessageCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">We're Here to Help</h2>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          We're Here to Help
+        </h2>
         <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          Our dedicated support team is available to assist you with any questions or concerns you may have.
+          Our dedicated support team is available to assist you with any questions or concerns you
+          may have.
         </p>
       </div>
 
@@ -838,12 +1138,14 @@ function SupportContent() {
               <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">Email Support</h3>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+                Email Support
+              </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Send us an email and we'll get back to you within 24 hours.
               </p>
-              <a 
-                href="mailto:support@suitable.com" 
+              <a
+                href="mailto:support@suitable.com"
                 className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
               >
                 support@suitable.com
@@ -859,13 +1161,13 @@ function SupportContent() {
               <MessageSquare className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">Live Chat</h3>
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+                Live Chat
+              </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Chat with our support team in real-time during business hours.
               </p>
-              <button 
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-              >
+              <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
                 Start Chat
               </button>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
@@ -881,65 +1183,102 @@ function SupportContent() {
         <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Common Issues</h3>
         <div className="space-y-4">
           <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-            <h4 className="font-medium text-gray-800 dark:text-white mb-2">Identity Verification Issues</h4>
-            <p className="text-gray-600 dark:text-gray-400">Having trouble with document verification? Make sure your photos are clear and all document details are visible.</p>
+            <h4 className="font-medium text-gray-800 dark:text-white mb-2">
+              Identity Verification Issues
+            </h4>
+            <p className="text-gray-600 dark:text-gray-400">
+              Having trouble with document verification? Make sure your photos are clear and all
+              document details are visible.
+            </p>
           </div>
           <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-            <h4 className="font-medium text-gray-800 dark:text-white mb-2">Account Access Problems</h4>
-            <p className="text-gray-600 dark:text-gray-400">If you're having trouble logging in, try resetting your password or check if your account has been verified.</p>
+            <h4 className="font-medium text-gray-800 dark:text-white mb-2">
+              Account Access Problems
+            </h4>
+            <p className="text-gray-600 dark:text-gray-400">
+              If you're having trouble logging in, try resetting your password or check if your
+              account has been verified.
+            </p>
           </div>
           <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-            <h4 className="font-medium text-gray-800 dark:text-white mb-2">Matching Algorithm Questions</h4>
-            <p className="text-gray-600 dark:text-gray-400">To improve your matches, make sure your profile is complete and your preferences are up to date.</p>
+            <h4 className="font-medium text-gray-800 dark:text-white mb-2">
+              Matching Algorithm Questions
+            </h4>
+            <p className="text-gray-600 dark:text-gray-400">
+              To improve your matches, make sure your profile is complete and your preferences are
+              up to date.
+            </p>
           </div>
         </div>
       </div>
 
       {/* Contact Form */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800/50">
-        <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Send Us a Message</h3>
+        <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+          Send Us a Message
+        </h3>
         <form className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Name</label>
-              <input 
-                type="text" 
-                id="name" 
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Your Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="John Doe"
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
-              <input 
-                type="email" 
-                id="email" 
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="your@email.com"
               />
             </div>
           </div>
           <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
-            <input 
-              type="text" 
-              id="subject" 
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+            <label
+              htmlFor="subject"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Subject
+            </label>
+            <input
+              type="text"
+              id="subject"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="How can we help you?"
             />
           </div>
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
-            <textarea 
-              id="message" 
-              rows={4} 
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+            <label
+              htmlFor="message"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Message
+            </label>
+            <textarea
+              id="message"
+              rows={4}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="Please describe your issue in detail..."
             ></textarea>
           </div>
           <div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all transform hover:scale-105 shadow-md"
             >
               Submit Request

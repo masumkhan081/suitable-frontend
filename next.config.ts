@@ -15,7 +15,13 @@ const nextConfig: NextConfig = {
       'randomuser.me',
       'localhost',
       '127.0.0.1',
-      'https://randomuser.me'
+      'https://randomuser.me',
+      'http://localhost:3001',
+      'http://localhost:3000',
+      'https://res.cloudinary.com/dz42l80wa/image/upload',
+      'https://res.cloudinary.com/dz42l80wa/image/upload/v1724565557',
+      'https://res.cloudinary.com'
+
     ]
   }
 }
